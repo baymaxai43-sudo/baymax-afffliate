@@ -18,6 +18,9 @@ services:
         value: https://baymax-shoppey.vercel.app
       - key: NODE_ENV
         value: production
+      # Shared with Vercel so the daily cron ping (/api/cron/tick) passes auth
+      - key: CRON_SECRET
+        value: aeae5ec65e3df97a3d28b47e26c135c38648b8ed990f35dc
       # AI (Gemini primary, Groq fallback)
       - key: GEMINI_API_KEY
         sync: false
