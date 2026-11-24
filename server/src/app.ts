@@ -1,6 +1,8 @@
 import Fastify, { type FastifyInstance } from 'fastify';
 import cookie from '@fastify/cookie';
+import cors from '@fastify/cors';
 import { requireAuth } from './auth';
+import { config } from './config';
 import { authRoutes } from './routes/auth';
 import { productRoutes } from './routes/products';
 import { contentRoutes } from './routes/content';
@@ -33,6 +35,22 @@ export function buildApp(): FastifyInstance {
   app.decorate('requireAuth', requireAuth);
 
   app.register(cookie);
+
+  // CORS: allow only the frontend origins (browser calls normally go through
+  // the Vercel same-origin proxy, so this is defense-in-depth for any direct
+  // browser → backend calls). Server-to-server traffic is unaffected.
+  const allowedOrigins = new Set(
+    [config.appUrl, 'https://baymax-shoppey.vercel.app', 'http://localhost:3000'].filter(Boolean)
+  );
+  app.register(cors, {
+    origin: (origin, cb) => {
+      // No Origin header (curl, server-to-server) or an allowed frontend origin
+      if (!origin || allowedOrigins.has(origin)) cb(null, true);
+      else cb(null, false); // unknown origin: process request, omit CORS headers
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
+  });
 
   app.setErrorHandler((err: any, req: any, reply: any) => {
     const status = err?.statusCode && err.statusCode >= 400 ? err.statusCode : 500;

@@ -60,6 +60,10 @@ API_ORIGIN=http://localhost:4000 npm run dev   # Next proxies /api + /c → :400
 | `TIKTOK_CLIENT_KEY/SECRET` | optional | TikTok OAuth connect |
 | `ALIEXPRESS_APP_KEY/SECRET/TRACKING_ID` | optional | Official affiliate API |
 
+## 📚 API Reference
+
+Every endpoint (auth, products, content, analytics, chat, settings, OAuth, tracking, cron), request/response examples, the AI request flow, and CORS rules → **[docs/API.md](docs/API.md)**.
+
 ## 🏗️ Architecture (Vercel + Render)
 
 ```
