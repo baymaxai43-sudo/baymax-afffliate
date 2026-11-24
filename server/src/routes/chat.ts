@@ -32,7 +32,7 @@ export async function chatRoutes(app: FastifyInstance): Promise<void> {
     },
     async (req) => {
       const message = (req.body?.message ?? '').trim();
-      if (!message) return { reply: 'Say something and I\'ll get on it.', toolTrace: [], provider: 'demo' };
+      if (!message) return { reply: 'Say something and I\'ll get on it.', toolTrace: [], provider: 'error' };
       const { data: recent } = await db()
         .from('chat_messages')
         .select('role,content')
@@ -41,7 +41,17 @@ export async function chatRoutes(app: FastifyInstance): Promise<void> {
         .limit(12);
 
       const history = (recent ?? []).reverse();
-      const result = await runAgent(message, history);
+      let result: Awaited<ReturnType<typeof runAgent>>;
+      try {
+        result = await runAgent(message, history);
+      } catch (e: any) {
+        // No demo fallback — tell the owner exactly what failed
+        result = {
+          reply: `⚠️ AI request failed: ${e?.message ?? e}. Check GEMINI_API_KEY / GROQ_API_KEY on Render.`,
+          toolTrace: [],
+          provider: 'error',
+        };
+      }
 
       const now = new Date().toISOString();
       await db().from('chat_messages').insert([

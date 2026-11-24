@@ -1,5 +1,5 @@
 /**
- * Unified AI gateway: Gemini (primary) → Groq (fallback) → demo mode.
+ * Unified AI gateway: Gemini (primary) → Groq (fallback) → explicit error.
  * Plain REST calls — no vendor SDKs.
  */
 import { config } from './config';
@@ -24,7 +24,7 @@ export interface AITool {
 export interface AIResult {
   text?: string;
   toolCalls?: ToolCall[];
-  provider: 'gemini' | 'groq' | 'demo';
+  provider: 'gemini' | 'groq' | 'error';
 }
 
 interface ChatOptions {
@@ -41,7 +41,7 @@ const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
 export function aiProviderLabel(): string {
   if (config.geminiApiKey) return `gemini (${config.geminiModel})`;
   if (config.groqApiKey) return `groq (${config.groqModel})`;
-  return 'demo mode';
+  return 'unavailable';
 }
 
 /* ------------------------------- Gemini ------------------------------- */
@@ -205,10 +205,12 @@ export async function chat(opts: ChatOptions): Promise<AIResult> {
       errors.push(String(e));
     }
   }
-  // Demo mode — deterministic, useful replies so the app always works
-  return { text: demoReply(opts), provider: 'demo' };
-  // (errors are logged by callers via result.provider === 'demo')
-  void errors;
+  // No demo fallback — surface the real failure (visible in logs + UI)
+  const detail = errors.length
+    ? errors.join(' | ')
+    : 'no AI key configured — set GEMINI_API_KEY or GROQ_API_KEY on the backend (Render)';
+  console.error('[ai] all providers failed:', detail);
+  throw new Error(detail);
 }
 
 function safeJson(content: string): unknown {
@@ -242,20 +244,3 @@ export function parseJson<T>(raw: string): T | null {
   return null;
 }
 
-function demoReply(opts: ChatOptions): string {
-  const lastUser = [...opts.messages].reverse().find((m) => m.role === 'user');
-  const text = ((lastUser as any)?.content ?? '').toLowerCase();
-  if (opts.tools?.length) {
-    return [
-      "I'm running in demo mode right now — add a GEMINI_API_KEY (or GROQ_API_KEY) to your deployment env and I'll use my full brain.",
-      'For now: open Products to add an AliExpress link, then Content to generate posts — I handle scheduling from there.',
-    ].join(' ');
-  }
-  if (text.includes('hello') || text.includes('hi')) {
-    return "Hey! I'm Baymax-Shoppey, your affiliate copilot. Add your first AliExpress product and I'll start creating TikTok and YouTube content for it.";
-  }
-  return [
-    "I'm in demo mode (no AI key configured yet). Once GEMINI_API_KEY is set I can generate posts, schedule them, and track performance automatically.",
-    'You can still add products, generate template content, and schedule posts right now.',
-  ].join(' ');
-}

@@ -10,7 +10,7 @@ export async function settingsRoutes(app: FastifyInstance): Promise<void> {
       autopilot,
       ai: {
         configured: aiConfigured(),
-        primary: config.geminiApiKey ? `Gemini (${config.geminiModel})` : config.groqApiKey ? `Groq (${config.groqModel})` : 'demo',
+        primary: config.geminiApiKey ? `Gemini (${config.geminiModel})` : config.groqApiKey ? `Groq (${config.groqModel})` : 'unavailable',
         gemini: Boolean(config.geminiApiKey),
         groq: Boolean(config.groqApiKey),
       },

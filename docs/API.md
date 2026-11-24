@@ -65,7 +65,7 @@ Status codes: `400` validation · `401` unauthorized · `403/404` not found or c
 ```json
 GET /health → { "ok": true, "app": "baymax-shoppey", "ai": true }
 ```
-`ai: false` means the **running backend process** has no `GEMINI_API_KEY`/`GROQ_API_KEY` in its environment (demo mode) — after fixing Render env vars, the service must restart for this to flip.
+`ai: false` means the **running backend process** has no `GEMINI_API_KEY`/`GROQ_API_KEY` in its environment (AI disabled) — after fixing Render env vars, the service must restart for this to flip.
 
 ---
 
@@ -179,7 +179,7 @@ GET /health → { "ok": true, "app": "baymax-shoppey", "ai": true }
 ```json
 {
   "reply": "…",
-  "provider": "gemini",          // "gemini" | "groq" | "demo"
+  "provider": "gemini",          // "gemini" | "groq" | "error"
   "toolTrace": [ { "name": "list_products", "args": {…}, "result": "…" } ]
 }
 ```
@@ -194,7 +194,7 @@ Browser POST /api/chat (same-origin, cookie)
                           ├─ runAgent() ──► ai.ts gateway:
                           │     1. GEMINI_API_KEY  → generativelanguage.googleapis.com (primary)
                           │     2. GROQ_API_KEY    → api.groq.com           (fallback)
-                          │     3. neither/both fail → deterministic demo reply
+                          │     3. neither/both fail → explicit error (provider: "error", no canned replies)
                           ├─ save user + assistant rows to chat_messages
                           └─► { reply, provider, toolTrace } ──► proxy ──► Browser
 ```
@@ -218,7 +218,7 @@ Same gateway powers **content generation** (`/content/generate`, autopilot tick)
   "social": { "youtube": true, "tiktok": false }
 }
 ```
-> `ai.configured:false` / `primary:"demo"` → the backend process has no AI keys in its env (see Troubleshooting).
+> `ai.configured:false` / `primary:"unavailable"` → the backend process has no AI keys in its env.
 
 **PATCH `/settings/autopilot`** — any of:
 ```json
@@ -273,15 +273,17 @@ Triggered daily at **09:00 UTC** by Vercel Cron (`/api/cron/tick`), and lazily b
 
 ---
 
-## Demo mode (no AI keys)
+## AI unavailable (missing or invalid keys)
 
-When neither `GEMINI_API_KEY` nor `GROQ_API_KEY` is present in the **backend (Render)** env:
+There is **no demo mode**. When neither `GEMINI_API_KEY` nor `GROQ_API_KEY` works:
 
-- `GET /settings` → `ai.configured:false`, `ai.primary:"demo"`
-- `POST /chat` → `provider:"demo"` (canned reply), UI shows **DEMO MODE**
-- content generation → deterministic template posts
+- `GET /health` → `"ai":false` (presence check at process boot)
+- `GET /settings` → `ai.configured:false`, `ai.primary:"unavailable"`
+- `POST /chat` → `provider:"error"` with reply `⚠️ AI request failed: <reason>…`
+- `POST /content/generate` → `500 { "error": "<reason>" }`
+- The backend logs `[ai] all providers failed: …` — check Render → Logs
 
-Keys are read **once at process start** — after adding/changing them in Render: **save → let it redeploy (or Manual Deploy → Restart) → Settings flips to `Gemini (…)`**.
+Keys are read **once at process start** — after adding/changing them in Render: **save → let it redeploy (or Manual Deploy → Restart) → `GET /health` shows `"ai":true`**.
 
 ---
 

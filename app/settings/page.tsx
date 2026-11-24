@@ -269,7 +269,7 @@ function SettingsBody() {
           <div className="ml-auto">
             {settings && (
               <Badge tone={settings.ai.configured ? 'green' : 'amber'}>
-                {settings.ai.configured ? settings.ai.primary : 'demo mode'}
+                {settings.ai.configured ? settings.ai.primary : 'keys missing'}
               </Badge>
             )}
           </div>
@@ -287,7 +287,7 @@ function SettingsBody() {
         {!settings?.ai.configured && (
           <p className="text-xs text-navy/50 mt-3 bg-warn/5 border border-warn/20 rounded-xl px-4 py-3">
             Add <code className="font-bold">GEMINI_API_KEY</code> (and optionally <code className="font-bold">GROQ_API_KEY</code>) to your
-            deployment environment variables to switch from demo mode to the full brain.
+            Render environment variables (<code className="font-bold">GEMINI_API_KEY</code> / <code className="font-bold">GROQ_API_KEY</code>) to enable the full brain.
           </p>
         )}
       </Card>
