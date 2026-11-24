@@ -89,3 +89,142 @@ body {
 .fade-up {
   animation: fadeUp 0.25s ease-out both;
 }
+
+/* ---------- Glassmorphism (chat) ---------- */
+.glass {
+  background: linear-gradient(140deg, rgba(255, 255, 255, 0.66), rgba(255, 255, 255, 0.4));
+  backdrop-filter: blur(20px) saturate(1.6);
+  -webkit-backdrop-filter: blur(20px) saturate(1.6);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  box-shadow:
+    0 10px 40px rgba(11, 22, 51, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+.glass-soft {
+  background: linear-gradient(140deg, rgba(255, 255, 255, 0.52), rgba(255, 255, 255, 0.3));
+  backdrop-filter: blur(16px) saturate(1.4);
+  -webkit-backdrop-filter: blur(16px) saturate(1.4);
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  box-shadow:
+    0 6px 24px rgba(11, 22, 51, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.65);
+}
+
+.bubble-user {
+  background: linear-gradient(135deg, #1b2a55 0%, #0b1633 72%);
+  box-shadow:
+    0 12px 28px rgba(11, 22, 51, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.14);
+}
+
+.btn-send {
+  background: linear-gradient(135deg, #4986f5 0%, #6ba3f2 100%);
+  box-shadow: 0 6px 18px rgba(73, 134, 245, 0.42);
+  transition: filter 0.15s ease, transform 0.15s ease;
+}
+.btn-send:hover:not(:disabled) {
+  filter: brightness(1.07);
+  transform: translateY(-1px);
+}
+
+/* ambient color blobs behind the glass panel */
+.ambient {
+  position: absolute;
+  inset: -1.5rem;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 0;
+}
+.ambient span {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(70px);
+}
+.ambient .b1 {
+  width: 420px;
+  height: 420px;
+  background: #6ba3f2;
+  top: -130px;
+  left: -110px;
+  opacity: 0.5;
+  animation: drift1 18s ease-in-out infinite alternate;
+}
+.ambient .b2 {
+  width: 380px;
+  height: 380px;
+  background: #4986f5;
+  bottom: -150px;
+  right: -100px;
+  opacity: 0.32;
+  animation: drift2 22s ease-in-out infinite alternate;
+}
+.ambient .b3 {
+  width: 300px;
+  height: 300px;
+  background: #9cc0f0;
+  top: 42%;
+  left: 58%;
+  opacity: 0.38;
+  animation: drift1 26s ease-in-out infinite alternate-reverse;
+}
+@keyframes drift1 {
+  to {
+    transform: translate(64px, 44px) scale(1.1);
+  }
+}
+@keyframes drift2 {
+  to {
+    transform: translate(-54px, -60px) scale(1.08);
+  }
+}
+
+/* pulsing live halo around the agent avatar */
+.halo {
+  position: relative;
+}
+.halo::before {
+  content: "";
+  position: absolute;
+  inset: -4px;
+  border-radius: inherit;
+  border: 2px solid rgba(22, 163, 74, 0.55);
+  animation: haloPulse 2s ease-out infinite;
+}
+@keyframes haloPulse {
+  0% {
+    transform: scale(0.92);
+    opacity: 0.9;
+  }
+  70% {
+    transform: scale(1.14);
+    opacity: 0;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* scanning shine while the agent thinks */
+.sweep {
+  position: relative;
+  overflow: hidden;
+}
+.sweep::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.6) 50%,
+    transparent 70%
+  );
+  transform: translateX(-100%);
+  animation: sweep 2s ease-in-out infinite;
+}
+@keyframes sweep {
+  to {
+    transform: translateX(100%);
+  }
+}
