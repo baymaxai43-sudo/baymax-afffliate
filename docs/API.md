@@ -171,9 +171,19 @@ GET /health → { "ok": true, "app": "baymax-shoppey", "ai": true }
 
 | Method | Path | Auth | Description |
 |---|---|---|---|
-| GET | `/chat/messages` | ✅ | History · `?limit=` (default recent window) |
-| POST | `/chat` | ✅ | Send a message → AI reply |
+| GET | `/chat/messages` | ✅ | History · `?limit=` (default recent window) · messages may carry `meta.attachments` |
+| POST | `/chat` | ✅ | Send a message (optionally with attachments) → AI reply |
+| POST | `/chat/upload` | ✅ | **Multipart upload** — field `files` (repeatable), up to 6 files, 15 MB each, any format (.zip, .pdf, .jpeg, …) |
+| GET | `/chat/files/:name` | — | Local-mode file serving (`LOCAL_STORE`); production serves from Supabase Storage public URLs |
 | DELETE | `/chat/messages` | ✅ | Clear history |
+
+**POST `/chat/upload`** (`multipart/form-data`, one `files` field per file)
+```json
+{ "files": [ { "name": "catalog.zip", "path": "…-catalog.zip", "mime": "application/zip", "size": 1048576, "url": "https://…/chat-attachments/…-catalog.zip" } ] }
+```
+
+**POST `/chat`** — body `{ "message": "…", "attachments": [ …uploaded refs… ] }` (attachments optional, max 6).
+Attachments are persisted on the user message as `meta.attachments` and returned by `/chat/messages`; image types render as thumbnails, other types as downloadable file chips.
 
 **POST `/chat`** — body `{ "message": "…" }` (1–4000 chars)
 ```json

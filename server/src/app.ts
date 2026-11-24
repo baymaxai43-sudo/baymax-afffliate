@@ -1,6 +1,7 @@
 import Fastify, { type FastifyInstance } from 'fastify';
 import cookie from '@fastify/cookie';
 import cors from '@fastify/cors';
+import multipart from '@fastify/multipart';
 import { requireAuth } from './auth';
 import { config, aiConfigured } from './config';
 import { authRoutes } from './routes/auth';
@@ -35,6 +36,9 @@ export function buildApp(): FastifyInstance {
   app.decorate('requireAuth', requireAuth);
 
   app.register(cookie);
+  app.register(multipart, {
+    limits: { fileSize: 15 * 1024 * 1024, files: 6, fields: 5 },
+  });
 
   // CORS: allow only the frontend origins (browser calls normally go through
   // the Vercel same-origin proxy, so this is defense-in-depth for any direct
