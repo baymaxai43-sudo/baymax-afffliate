@@ -6,9 +6,9 @@ export const config = {
 
   // AI — Gemini primary, Groq fallback
   geminiApiKey: process.env.GEMINI_API_KEY || '',
-  geminiModel: process.env.GEMINI_MODEL || 'gemini-2.5-pro',
+  geminiModel: process.env.GEMINI_MODEL || 'gemini-3.1-pro-preview',
   groqApiKey: process.env.GROQ_API_KEY || '',
-  groqModel: process.env.GROQ_MODEL || 'llama-3.3-70b-versatile',
+  groqModel: process.env.GROQ_MODEL || 'openai/gpt-oss-120b',
 
   // AliExpress affiliate (optional — link scraping works without these)
   aliexpressAppKey: process.env.ALIEXPRESS_APP_KEY || '',
