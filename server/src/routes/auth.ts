@@ -30,14 +30,19 @@ function recordAttempt(ip: string): void {
 export async function authRoutes(app: FastifyInstance): Promise<void> {
   /** Public: does the owner need to create a password yet? Is the session valid? */
   app.get('/auth/status', async (req) => {
-    const hash = await ownerPasswordHash();
-    const tourCompleted = await getSetting<boolean>('tour_completed', false);
-    const bearer = req.headers.authorization;
-    const token =
-      (bearer && bearer.startsWith('Bearer ') ? bearer.slice(7) : null) ||
-      (req.cookies as Record<string, string> | undefined)?.['bs_session'];
-    const authenticated = token ? await verifyToken(token) : false;
-    return { needsSetup: !hash, tourCompleted, authenticated, app: 'baymax-shoppey' };
+    try {
+      const hash = await ownerPasswordHash();
+      const tourCompleted = await getSetting<boolean>('tour_completed', false);
+      const bearer = req.headers.authorization;
+      const token =
+        (bearer && bearer.startsWith('Bearer ') ? bearer.slice(7) : null) ||
+        (req.cookies as Record<string, string> | undefined)?.['bs_session'];
+      const authenticated = token ? await verifyToken(token) : false;
+      return { needsSetup: !hash, tourCompleted, authenticated, dbReady: true, app: 'baymax-shoppey' };
+    } catch {
+      // DB not reachable / env keys missing — let the UI explain instead of 500ing
+      return { needsSetup: false, tourCompleted: false, authenticated: false, dbReady: false, app: 'baymax-shoppey' };
+    }
   });
 
   /** First-run: create the owner password (stored hashed, server-side only). */

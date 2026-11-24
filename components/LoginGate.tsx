@@ -95,6 +95,21 @@ export default function LoginGate() {
           </p>
         </div>
 
+        {status && status.dbReady === false ? (
+          <div className="bg-white/95 backdrop-blur rounded-3xl shadow-[0_20px_60px_rgba(11,22,51,.25)] p-7 w-full max-w-sm fade-up">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-lg">🔧</span>
+              <h2 className="font-bold text-navy">Almost there</h2>
+            </div>
+            <p className="text-xs text-navy/55 leading-relaxed">
+              This deployment is waiting for its environment keys. In <b>Vercel → Settings → Environment Variables</b>{' '}
+              add <code className="font-bold bg-navy/5 px-1 rounded">SUPABASE_SERVICE_KEY</code> (and optionally{' '}
+              <code className="font-bold bg-navy/5 px-1 rounded">GEMINI_API_KEY</code>), then redeploy — everything else is
+              already wired up.
+            </p>
+            <p className="text-[11px] text-navy/40 mt-4">Baymax-Shoppey v1.0 · private store</p>
+          </div>
+        ) : (
         <form
           onSubmit={submit}
           className="bg-white/95 backdrop-blur rounded-3xl shadow-[0_20px_60px_rgba(11,22,51,.25)] p-7 w-full max-w-sm fade-up"
@@ -137,6 +152,7 @@ export default function LoginGate() {
             Only the owner has access · Baymax-Shoppey v1.0
           </p>
         </form>
+        )}
       </div>
     </main>
   );

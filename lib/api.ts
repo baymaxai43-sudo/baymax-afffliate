@@ -32,4 +32,5 @@ export interface AuthStatus {
   needsSetup: boolean;
   tourCompleted: boolean;
   authenticated?: boolean;
+  dbReady?: boolean;
 }
