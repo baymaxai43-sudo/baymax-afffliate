@@ -1,0 +1,34 @@
+# ── Baymax-Shoppey BACKEND (Fastify) → Render ─────────────────────────
+# Frontend (Next.js) stays on Vercel and proxies /api/* here via API_ORIGIN.
+services:
+  - type: web
+    name: baymax-shoppey-api
+    runtime: docker
+    plan: free
+    healthCheckPath: /health
+    envVars:
+      # Required
+      - key: SUPABASE_URL
+        value: https://opcdbpbnhabdcqkfrjrt.supabase.co
+      - key: SUPABASE_SERVICE_KEY
+        sync: false          # paste sb_secret_… from Supabase dashboard
+      - key: OWNER_PASSWORD_HASH
+        sync: false          # bcrypt hash — generate: npm run hash -- "your-password"
+      - key: APP_URL
+        value: https://baymax-shoppey.vercel.app
+      - key: NODE_ENV
+        value: production
+      # AI (Gemini primary, Groq fallback)
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false
+      # Social OAuth (optional until you connect accounts)
+      - key: YOUTUBE_CLIENT_ID
+        sync: false
+      - key: YOUTUBE_CLIENT_SECRET
+        sync: false
+      - key: TIKTOK_CLIENT_KEY
+        sync: false
+      - key: TIKTOK_CLIENT_SECRET
+        sync: false
