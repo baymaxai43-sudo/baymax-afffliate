@@ -88,25 +88,6 @@ Return a JSON array with ${count} items matching: {platform, format, title, body
       }))
       .filter((p) => p.body);
   }
-  return [demoPost(product, platform)];
+  throw new Error(`AI returned no parseable content for ${platform} (provider: ${res.provider})`);
 }
 
-function demoPost(product: ProductLike, platform: 'tiktok' | 'youtube'): GeneratedPost {
-  const priceLine = product.price ? ` at just ${product.price} ${product.currency ?? 'USD'}` : '';
-  if (platform === 'tiktok') {
-    return {
-      platform,
-      format: 'video_script',
-      title: `Stop scrolling — ${product.title}`,
-      body: `HOOK (0-3s): You need to see this ${product.title} before it sells out.\n\nBEAT 1 (3-10s): Show the product from multiple angles. Say: "I found this${priceLine} and honestly it looks way more expensive."\n\nBEAT 2 (10-25s): Quick demo / unboxing moment. Call out the #1 benefit in one sentence.\n\nCTA (25-40s): "Link in bio — grab yours before the price goes up. Follow for more daily finds!"`,
-      hashtags: ['aliexpressfinds', 'tiktokmademebuyit', 'dropshipping', 'musthave', 'shopwithme'],
-    };
-  }
-  return {
-    platform,
-    format: 'short',
-    title: `${product.title} — Honest Review (Shorts)`.slice(0, 70),
-    body: `HOOK: "Is the ${product.title} actually worth it? Let's find out in 40 seconds."\n\n- First impressions & unboxing\n- Close-up of quality/materials\n- Real usage demo\n- Verdict: who should buy it${priceLine}?\n\nDESCRIPTION:\nI tested the ${product.title} so you don't have to. Full walkthrough with honest thoughts.\n\n👉 Link to grab it is in the description.\n\nIf you enjoyed this, like & subscribe for more daily finds.`,
-    hashtags: ['shorts', 'aliexpress', 'productreview', 'finds', 'shopping'],
-  };
-}

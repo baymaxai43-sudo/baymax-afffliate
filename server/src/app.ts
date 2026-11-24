@@ -59,7 +59,7 @@ export function buildApp(): FastifyInstance {
   });
 
   // `ai` = whether the RUNNING process sees AI keys in its env (presence only).
-  // Lets the owner verify demo-mode status without auth (no secrets exposed).
+  // Lets the owner verify AI-key status without auth (no secrets exposed).
   app.get('/health', async () => ({ ok: true, app: 'baymax-shoppey', ai: aiConfigured() }));
 
   app.register(authRoutes);

@@ -319,7 +319,7 @@ export async function runAgent(userMessage: string, history: { role: 'user' | 'a
   ];
 
   const trace: { name: string; ok: boolean }[] = [];
-  let provider = 'demo';
+  let provider = 'error';
 
   for (let round = 0; round < 6; round++) {
     const res = await chat({ messages, tools: TOOLS, temperature: 0.4 });

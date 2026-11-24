@@ -131,13 +131,10 @@ function ChatBody() {
         <div className="min-w-0">
           <div className="font-bold text-navy leading-tight">Baymax</div>
           <div className="text-xs text-navy/45">
-            {provider ? `${provider} · autonomous copilot` : 'your affiliate copilot'}
+            {provider === 'gemini' || provider === 'groq' ? `${provider} · autonomous copilot` : 'your affiliate copilot'}
           </div>
         </div>
         <div className="ml-auto flex items-center gap-2">
-          {provider === 'demo' && (
-            <span className="text-[11px] font-bold text-warn bg-warn/10 px-2 py-1 rounded-full">DEMO MODE</span>
-          )}
           <Button variant="ghost" size="sm" onClick={clearChat} title="Clear chat">
             <Icon name="trash" className="w-4 h-4" /> Clear
           </Button>
