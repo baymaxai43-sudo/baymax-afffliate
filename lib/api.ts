@@ -13,10 +13,12 @@ export async function api<T = any>(
   path: string,
   opts: { method?: string; body?: unknown } = {}
 ): Promise<T> {
+  const isForm = typeof FormData !== 'undefined' && opts.body instanceof FormData;
   const res = await fetch('/api' + path, {
     method: opts.method ?? (opts.body !== undefined ? 'POST' : 'GET'),
-    headers: opts.body !== undefined ? { 'Content-Type': 'application/json' } : undefined,
-    body: opts.body !== undefined ? JSON.stringify(opts.body) : undefined,
+    // FormData must NOT get a JSON content-type — the browser sets the boundary
+    headers: opts.body !== undefined && !isForm ? { 'Content-Type': 'application/json' } : undefined,
+    body: opts.body === undefined ? undefined : isForm ? (opts.body as FormData) : JSON.stringify(opts.body),
     credentials: 'same-origin',
   });
   const data = await res.json().catch(() => ({}));
