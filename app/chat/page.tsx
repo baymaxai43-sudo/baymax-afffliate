@@ -125,7 +125,7 @@ function ChatBody() {
       <div className="flex items-center gap-3 pb-4">
         <div className="relative">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo.png" alt="Baymax" className="w-10 h-10 rounded-xl shadow-md" />
+          <img src="/baymax-icon.png" alt="Baymax" className="w-10 h-10 rounded-xl shadow-md bg-white" />
           <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-success border-2 border-cloud" />
         </div>
         <div className="min-w-0">
@@ -149,7 +149,7 @@ function ChatBody() {
         {empty && (
           <div className="h-full flex flex-col items-center justify-center text-center px-4">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/mascot.png" alt="" className="w-16 h-16 mb-4 drop-shadow-lg" />
+            <img src="/baymax-hero.png" alt="" className="h-24 w-auto mb-4 drop-shadow-lg" />
             <h2 className="text-xl font-extrabold text-navy tracking-tight">What should we do next?</h2>
             <p className="text-sm text-navy/50 mt-1 mb-6 max-w-sm">
               I can write posts, schedule them, track clicks and sales — just ask.
@@ -175,7 +175,7 @@ function ChatBody() {
         {thinking && (
           <div className="flex items-start gap-3 fade-up">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo.png" alt="" className="w-8 h-8 rounded-lg shadow-sm mt-0.5" />
+            <img src="/baymax-icon.png" alt="" className="w-8 h-8 rounded-lg shadow-sm mt-0.5 bg-white" />
             <div className="bg-white border border-navy/5 rounded-2xl rounded-tl-md px-4 py-3 shadow-sm">
               <div className="flex gap-1.5 items-center">
                 <span className="w-1.5 h-1.5 rounded-full bg-sky-deep dot" />
@@ -232,7 +232,7 @@ function Message({ m }: { m: Msg }) {
     <div className={`flex gap-3 fade-up ${isUser ? 'flex-row-reverse' : ''}`}>
       {!isUser && (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src="/logo.png" alt="" className="w-8 h-8 rounded-lg shadow-sm mt-0.5 shrink-0" />
+        <img src="/baymax-icon.png" alt="" className="w-8 h-8 rounded-lg shadow-sm mt-0.5 shrink-0 bg-white" />
       )}
       <div className={`max-w-[80%] ${isUser ? 'text-right' : ''}`}>
         <div

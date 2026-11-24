@@ -3,6 +3,7 @@ import {
   clearSessionCookie,
   hashPassword,
   ownerPasswordHash,
+  passwordSource,
   setOwnerPasswordHash,
   setSessionCookie,
   signToken,
@@ -38,7 +39,14 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
         (bearer && bearer.startsWith('Bearer ') ? bearer.slice(7) : null) ||
         (req.cookies as Record<string, string> | undefined)?.['bs_session'];
       const authenticated = token ? await verifyToken(token) : false;
-      return { needsSetup: !hash, tourCompleted, authenticated, dbReady: true, app: 'baymax-shoppey' };
+      return {
+        needsSetup: !hash,
+        tourCompleted,
+        authenticated,
+        dbReady: true,
+        passwordSource: passwordSource() ?? (hash ? 'database' : null),
+        app: 'baymax-shoppey',
+      };
     } catch {
       // DB not reachable / env keys missing — let the UI explain instead of 500ing
       return { needsSetup: false, tourCompleted: false, authenticated: false, dbReady: false, app: 'baymax-shoppey' };
@@ -127,6 +135,11 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
       const current = req.body?.current;
       const next = req.body?.next;
       if (!current || !next) return reply.code(400).send({ error: 'current and next required' });
+      if (passwordSource() === 'render_env') {
+        return reply
+          .code(409)
+          .send({ error: 'Password is managed by OWNER_PASSWORD_HASH on Render — update it there, then restart.' });
+      }
       const hash = await ownerPasswordHash();
       if (!hash || !(await verifyPassword(current, hash))) {
         return reply.code(401).send({ error: 'Current password is incorrect' });

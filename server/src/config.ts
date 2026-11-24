@@ -22,6 +22,8 @@ export const config = {
   tiktokClientSecret: process.env.TIKTOK_CLIENT_SECRET || '',
 
   cronSecret: process.env.CRON_SECRET || '',
+  // Owner password hash — lives on the backend host (Render env var)
+  ownerPasswordHash: process.env.OWNER_PASSWORD_HASH || '',
 };
 
 export const aiConfigured = () => Boolean(config.geminiApiKey || config.groqApiKey);

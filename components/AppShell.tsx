@@ -36,7 +36,7 @@ export function AppShell({ title, children, actions }: { title: string; children
       <div className="min-h-screen flex items-center justify-center bg-cloud">
         <div className="flex flex-col items-center gap-3">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo.png" alt="" className="w-12 h-12 animate-pulse" />
+          <img src="/baymax-icon.png" alt="" className="w-12 h-12 animate-pulse bg-white rounded-xl" />
           <p className="text-sm text-navy/50 font-medium">Opening your store…</p>
         </div>
       </div>
@@ -74,7 +74,7 @@ export function AppShell({ title, children, actions }: { title: string; children
   const brand = (
     <div className="px-5 pt-5 pb-3 flex items-center gap-2.5">
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src="/logo.png" alt="Baymax-Shoppey" className="w-9 h-9 rounded-xl shadow-md" />
+      <img src="/baymax-icon.png" alt="Baymax-Shoppey" className="w-9 h-9 rounded-xl shadow-md bg-white" />
       <div className="leading-tight">
         <div className="font-extrabold text-navy text-[15px] tracking-tight">
           baymax<span className="text-sky-deep">-shoppey</span>

@@ -11,11 +11,12 @@ const nextConfig: NextConfig = {
   async rewrites() {
     const rules: { source: string; destination: string }[] = [];
     if (backend) {
-      // Standalone backend mode (local dev against `npm run server`)
-      rules.push({
-        source: '/api/:path*',
-        destination: `${backend}/:path*`,
-      });
+      // Split mode: frontend on Vercel, Fastify API on Render —
+      // every API call and click-tracker redirect is proxied to the backend.
+      rules.push(
+        { source: '/api/:path*', destination: `${backend}/:path*` },
+        { source: '/c/:code', destination: `${backend}/track/:code` }
+      );
     }
     return {
       beforeFiles: rules,

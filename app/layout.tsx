@@ -5,7 +5,7 @@ export const metadata: Metadata = {
   title: 'Baymax-Shoppey — your autonomous affiliate copilot',
   description:
     'Private AI that runs your AliExpress affiliate store: content, scheduling, tracking — on autopilot for TikTok & YouTube.',
-  icons: { icon: '/logo.png' },
+  icons: { icon: '/baymax-icon.png' },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs';
 import { SignJWT, jwtVerify } from 'jose';
 import type { FastifyReply, FastifyRequest } from 'fastify';
 import { getSetting, setSetting } from './db';
+import { config } from './config';
 
 const COOKIE_NAME = 'bs_session';
 const JWT_TTL = '30d';
@@ -15,8 +16,19 @@ export async function verifyPassword(password: string, hash: string): Promise<bo
   return bcrypt.compare(password, hash);
 }
 
+/**
+ * The owner password hash lives on the backend host (Render env var
+ * OWNER_PASSWORD_HASH). The DB is only a first-run fallback until the
+ * hash is moved to the env.
+ */
 export async function ownerPasswordHash(): Promise<string | null> {
+  if (config.ownerPasswordHash) return config.ownerPasswordHash;
   return getSetting<string | null>('owner_password_hash', null);
+}
+
+/** Where the active password hash is stored. */
+export function passwordSource(): 'render_env' | 'database' | null {
+  return config.ownerPasswordHash ? 'render_env' : null;
 }
 
 export async function setOwnerPasswordHash(hash: string): Promise<void> {

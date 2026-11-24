@@ -8,6 +8,7 @@
     "build": "next build",
     "start": "next start",
     "server": "tsx server/src/index.ts",
+    "hash": "tsx server/src/hash.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

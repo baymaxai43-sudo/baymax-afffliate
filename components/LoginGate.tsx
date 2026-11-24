@@ -15,11 +15,17 @@ function Cloud({ style }: { style: React.CSSProperties }) {
   );
 }
 
+const FEATURES = [
+  { icon: '✍️', text: 'Writes TikTok & YouTube posts for your products — hooks, scripts, hashtags' },
+  { icon: '⚡', text: 'Autopilot publishes on a schedule and tracks every click & sale' },
+  { icon: '🛍️', text: 'Paste an AliExpress affiliate link — Baymax imports the product instantly' },
+  { icon: '💬', text: 'Just ask in chat: “promote my newest product” — it gets done' },
+];
+
 export default function LoginGate() {
   const router = useRouter();
   const [status, setStatus] = useState<AuthStatus | null>(null);
   const [password, setPassword] = useState('');
-  const [confirm, setConfirm] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
 
@@ -37,10 +43,6 @@ export default function LoginGate() {
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setError('');
-    if (setup && password !== confirm) {
-      setError('Passwords do not match');
-      return;
-    }
     if (password.length < 8) {
       setError('Password must be at least 8 characters');
       return;
@@ -68,7 +70,7 @@ export default function LoginGate() {
       <header className="relative z-10 flex items-center justify-between px-6 md:px-10 py-5">
         <div className="flex items-center gap-2.5">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo.png" alt="Baymax-Shoppey" className="w-9 h-9 rounded-xl shadow-md" />
+          <img src="/baymax-icon.png" alt="Baymax-Shoppey" className="w-9 h-9 rounded-xl shadow-md bg-white" />
           <span className="font-extrabold text-white text-lg tracking-tight drop-shadow-sm">
             baymax<span className="text-navy/80">-shoppey</span>
           </span>
@@ -79,19 +81,19 @@ export default function LoginGate() {
       </header>
 
       {/* hero + gate */}
-      <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-4 pb-16">
-        <div className="text-center mb-8 fade-up">
+      <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-4 pb-14">
+        <div className="text-center mb-7 fade-up">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/mascot.png"
-            alt="Baymax mascot"
-            className="w-24 h-24 mx-auto mb-5 drop-shadow-[0_10px_25px_rgba(11,22,51,.3)]"
+            src="/baymax-hero.png"
+            alt="Baymax"
+            className="h-36 md:h-44 w-auto mx-auto mb-4 drop-shadow-[0_12px_30px_rgba(11,22,51,.25)]"
           />
           <h1 className="text-4xl md:text-5xl font-extrabold text-navy tracking-tight leading-[1.05]">
             Your store, on autopilot.
           </h1>
           <p className="text-navy/70 mt-3 text-base md:text-lg max-w-md mx-auto">
-            Baymax writes, schedules and tracks your TikTok &amp; YouTube promos — while you focus on sales.
+            Meet Baymax — the AI that runs your affiliate marketing while you focus on sales.
           </p>
         </div>
 
@@ -102,57 +104,68 @@ export default function LoginGate() {
               <h2 className="font-bold text-navy">Almost there</h2>
             </div>
             <p className="text-xs text-navy/55 leading-relaxed">
-              This deployment is waiting for its environment keys. In <b>Vercel → Settings → Environment Variables</b>{' '}
-              add <code className="font-bold bg-navy/5 px-1 rounded">SUPABASE_SERVICE_KEY</code> (and optionally{' '}
-              <code className="font-bold bg-navy/5 px-1 rounded">GEMINI_API_KEY</code>), then redeploy — everything else is
-              already wired up.
+              Your backend isn’t fully configured yet. Set <code className="font-bold bg-navy/5 px-1 rounded">OWNER_PASSWORD_HASH</code>{' '}
+              and <code className="font-bold bg-navy/5 px-1 rounded">SUPABASE_SERVICE_KEY</code> on your backend host (Render → Environment),
+              then restart — everything else is already wired up.
             </p>
             <p className="text-[11px] text-navy/40 mt-4">Baymax-Shoppey v1.0 · private store</p>
           </div>
         ) : (
-        <form
-          onSubmit={submit}
-          className="bg-white/95 backdrop-blur rounded-3xl shadow-[0_20px_60px_rgba(11,22,51,.25)] p-7 w-full max-w-sm fade-up"
-        >
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-lg">{setup ? '👋' : '🔐'}</span>
-            <h2 className="font-bold text-navy">{setup ? 'Create your password' : 'Welcome back'}</h2>
-          </div>
-          <p className="text-xs text-navy/50 mb-5">
-            {setup
-              ? 'First time here? Choose a master password — stored hashed, only you can enter.'
-              : 'Enter your master password to open the dashboard.'}
-          </p>
+          <form
+            onSubmit={submit}
+            className="bg-white/95 backdrop-blur rounded-3xl shadow-[0_20px_60px_rgba(11,22,51,.25)] p-7 w-full max-w-sm fade-up"
+          >
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-lg">{setup ? '👋' : '🔐'}</span>
+              <h2 className="font-bold text-navy">{setup ? 'Create your password' : 'Welcome back'}</h2>
+            </div>
+            <p className="text-xs text-navy/50 mb-5">
+              {setup
+                ? 'First time here? Choose your master password — stored hashed, only you can enter.'
+                : 'Enter your master password to open the dashboard.'}
+            </p>
 
-          <label className="block text-xs font-semibold text-navy/70 mb-1.5">Password</label>
-          <Input
-            type="password"
-            value={password}
-            onChange={setPassword}
-            placeholder="••••••••"
-            autoFocus
-            className="mb-3"
-          />
-          {setup && (
-            <>
-              <label className="block text-xs font-semibold text-navy/70 mb-1.5">Confirm password</label>
-              <Input type="password" value={confirm} onChange={setConfirm} placeholder="••••••••" className="mb-3" />
-            </>
-          )}
+            <label className="block text-xs font-semibold text-navy/70 mb-1.5">Password</label>
+            <Input
+              type="password"
+              value={password}
+              onChange={setPassword}
+              placeholder="••••••••"
+              autoFocus
+              className="mb-3"
+            />
 
-          {error && (
-            <p className="text-xs text-danger font-semibold bg-danger/5 rounded-lg px-3 py-2 mb-3">{error}</p>
-          )}
+            {error && (
+              <p className="text-xs text-danger font-semibold bg-danger/5 rounded-lg px-3 py-2 mb-3">{error}</p>
+            )}
 
-          <Button type="submit" size="lg" className="w-full" disabled={busy || status === null}>
-            {busy ? 'One sec…' : setup ? 'Create & enter' : 'Enter my store'}
-          </Button>
+            <Button type="submit" size="lg" className="w-full" disabled={busy || status === null}>
+              {busy ? 'One sec…' : setup ? 'Create & enter' : 'Enter my store'}
+            </Button>
 
-          <p className="text-[11px] text-navy/40 text-center mt-4">
-            Only the owner has access · Baymax-Shoppey v1.0
-          </p>
-        </form>
+            <p className="text-[11px] text-navy/40 text-center mt-4">
+              Only the owner has access · Baymax-Shoppey v1.0
+            </p>
+          </form>
         )}
+
+        {/* About Baymax — details under the password form */}
+        <div className="mt-8 max-w-md w-full fade-up">
+          <div className="grid sm:grid-cols-2 gap-2.5">
+            {FEATURES.map((f) => (
+              <div
+                key={f.text}
+                className="flex items-start gap-2.5 bg-white/25 backdrop-blur-sm rounded-2xl px-3.5 py-3 border border-white/30"
+              >
+                <span className="text-lg leading-none mt-0.5">{f.icon}</span>
+                <span className="text-[12px] leading-snug text-navy/85 font-medium">{f.text}</span>
+              </div>
+            ))}
+          </div>
+          <p className="text-center text-[11px] text-white/85 font-semibold mt-4 drop-shadow-sm">
+            Baymax-Shoppey · your private autonomous affiliate copilot · TikTok + YouTube
+          </p>
+        </div>
       </div>
     </main>
   );

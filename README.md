@@ -33,11 +33,17 @@ npm run dev                  # http://localhost:3000
 
 First visit → create your master password (stored as bcrypt hash) → 5-step tour → dashboard.
 
-Standalone API only (optional, e.g. Render):
+Backend standalone (this is what Render runs):
 
 ```bash
-npm run server               # Fastify on :4000
-API_ORIGIN=http://localhost:4000 npm run dev   # Next proxies /api → :4000
+npm run server               # Fastify on :4000 (Docker/Render entry: see Dockerfile)
+npm run hash -- "my-password"   # generate OWNER_PASSWORD_HASH for Render
+```
+
+Frontend pointed at that backend:
+
+```bash
+API_ORIGIN=http://localhost:4000 npm run dev   # Next proxies /api + /c → :4000
 ```
 
 ## 🔐 Environment variables
@@ -54,17 +60,41 @@ API_ORIGIN=http://localhost:4000 npm run dev   # Next proxies /api → :4000
 | `TIKTOK_CLIENT_KEY/SECRET` | optional | TikTok OAuth connect |
 | `ALIEXPRESS_APP_KEY/SECRET/TRACKING_ID` | optional | Official affiliate API |
 
-## 📁 Structure
+## 🏗️ Architecture (Vercel + Render)
 
 ```
-app/                 # Next.js UI (login, dashboard, chat, products, content, analytics, settings)
-components/          # AppShell, LoginGate, Tour (mascot), UI kit
-pages/api/[[...path]].ts   # Fastify bridge (every /api/* → Fastify)
-server/src/          # Fastify API: routes/, services/ (ai, agent, publishers, scheduler)
-app/c/[code]/route.ts      # Click-tracker redirect
-Dockerfile, render.yaml    # optional standalone backend
-vercel.json               # cron: autopilot tick every 6h
+                        ┌──────────────────────────────────────┐
+   browser ──────────►  │  Vercel — baymax-shoppey.vercel.app  │
+                        │  Next.js frontend (UI only)          │
+                        │  • landing / dashboard / chat / …    │
+                        │  • proxies /api/* and /c/* ──────────────┐
+                        └──────────────────────────────────────┘  │
+                                                                  ▼
+                        ┌──────────────────────────────────────┐
+                        │  Render — baymax-shoppey-api         │
+                        │  Fastify backend (all logic)         │
+                        │  • OWNER_PASSWORD_HASH (hashed pw)   │
+                        │  • auth, products, content, chat     │
+                        │  • AI: Gemini → Groq                 │
+                        │  • TikTok / YouTube publishers       │
+                        │  • scheduler (autopilot)             │
+                        └──────────────┬───────────────────────┘
+                                       ▼
+                        ┌──────────────────────────────────────┐
+                        │  Supabase project “shoppey”          │
+                        │  products · content · events ·       │
+                        │  connections · chat · settings       │
+                        └──────────────────────────────────────┘
 ```
+
+- **Password**: bcrypt hash stored in the **Render env var `OWNER_PASSWORD_HASH`** (generate with `npm run hash -- "your-password"`). The frontend never sees it — it POSTs to the backend, which compares hashes and returns a JWT cookie.
+- **Split mode**: set `API_ORIGIN=https://<your-render-service>.onrender.com` on Vercel → all `/api/*` and `/c/:code` requests proxy to Render.
+- **All-in-one mode** (no `API_ORIGIN`): the same Fastify app runs inside Next.js on Vercel — useful before Render exists, or with `LOCAL_STORE=1` for offline dev.
+
+### Deploy the backend to Render
+1. Push the repo → Render → **New → Blueprint** → pick this repo (`render.yaml` is included)
+2. Fill the `sync: false` env vars: `SUPABASE_SERVICE_KEY`, `OWNER_PASSWORD_HASH`, `GEMINI_API_KEY`, `GROQ_API_KEY`
+3. Copy the service URL → set `API_ORIGIN` on Vercel → redeploy the frontend
 
 ## 🗓️ Autopilot loop
 

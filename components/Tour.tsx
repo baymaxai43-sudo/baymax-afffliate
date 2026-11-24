@@ -66,7 +66,7 @@ export function Tour({ onDone }: { onDone?: () => void }) {
       >
         <div className="relative inline-block mb-4">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/mascot.png" alt="Baymax" className="w-20 h-20 mx-auto drop-shadow-lg" />
+          <img src="/baymax-hero.png" alt="Baymax" className="h-24 w-auto mx-auto drop-shadow-lg" />
           <span className="absolute -right-1 -top-1 w-7 h-7 rounded-full bg-sky-deep text-white flex items-center justify-center text-sm font-bold shadow-lg">
             {step + 1}
           </span>
