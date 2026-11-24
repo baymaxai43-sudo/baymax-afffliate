@@ -2,7 +2,7 @@ import Fastify, { type FastifyInstance } from 'fastify';
 import cookie from '@fastify/cookie';
 import cors from '@fastify/cors';
 import { requireAuth } from './auth';
-import { config } from './config';
+import { config, aiConfigured } from './config';
 import { authRoutes } from './routes/auth';
 import { productRoutes } from './routes/products';
 import { contentRoutes } from './routes/content';
@@ -58,7 +58,9 @@ export function buildApp(): FastifyInstance {
     reply.code(status).send({ error: err?.message || 'Internal error' });
   });
 
-  app.get('/health', async () => ({ ok: true, app: 'baymax-shoppey' }));
+  // `ai` = whether the RUNNING process sees AI keys in its env (presence only).
+  // Lets the owner verify demo-mode status without auth (no secrets exposed).
+  app.get('/health', async () => ({ ok: true, app: 'baymax-shoppey', ai: aiConfigured() }));
 
   app.register(authRoutes);
   app.register(trackRoutes);
