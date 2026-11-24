@@ -11,6 +11,22 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ cod
   const { code } = await params;
   const fallback = 'https://www.aliexpress.com/';
 
+  // Split mode (API_ORIGIN set): tracking lives on the backend — forward there
+  // so Vercel stays frontend-only and the click is logged by the Fastify service.
+  const origin = process.env.API_ORIGIN?.replace(/\/$/, '');
+  if (origin) {
+    try {
+      const upstream = await fetch(`${origin}/track/${encodeURIComponent(code)}`, { redirect: 'manual' });
+      const location = upstream.headers.get('location');
+      if (location && upstream.status >= 300 && upstream.status < 400) {
+        return NextResponse.redirect(location, upstream.status);
+      }
+    } catch (e) {
+      console.error('track proxy failed:', e);
+    }
+    return NextResponse.redirect(fallback, 302); // fail open: click still reaches the product
+  }
+
   try {
     const { data: product } = await db()
       .from('products')
