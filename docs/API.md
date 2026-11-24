@@ -63,8 +63,9 @@ Status codes: `400` validation · `401` unauthorized · `403/404` not found or c
 | GET | `/health` | — | Liveness probe |
 
 ```json
-GET /health → { "ok": true, "app": "baymax-shoppey" }
+GET /health → { "ok": true, "app": "baymax-shoppey", "ai": true }
 ```
+`ai: false` means the **running backend process** has no `GEMINI_API_KEY`/`GROQ_API_KEY` in its environment (demo mode) — after fixing Render env vars, the service must restart for this to flip.
 
 ---
 
