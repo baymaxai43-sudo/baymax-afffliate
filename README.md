@@ -21,7 +21,7 @@ Live at **baymax-shoppey.vercel.app**
 - **Frontend:** Next.js 15 (App Router) + React 19 + Tailwind CSS 4 — palette sampled from [baymaxhq.vercel.app](https://baymaxhq.vercel.app)
 - **Backend:** Fastify 5 (TypeScript) — mounted in-process under `/api/*` on Vercel, or standalone via Docker/Render
 - **Database:** Supabase (Postgres) — project `shoppey`, RLS enabled, service key server-side only
-- **AI:** Gemini `gemini-2.5-pro` → Groq `llama-3.3-70b-versatile` fallback → explicit error when keys are missing
+- **AI:** Gemini `gemini-3.1-pro-preview` → Groq `openai/gpt-oss-120b` fallback → explicit error when keys are missing
 
 ## 🚀 Run locally
 

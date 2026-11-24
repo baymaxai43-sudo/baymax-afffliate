@@ -214,7 +214,7 @@ Same gateway powers **content generation** (`/content/generate`, autopilot tick)
 ```json
 {
   "autopilot": { "enabled": true, "dailyPerPlatform": 2, "times": ["09:00"], "brandVoice": "…" },
-  "ai": { "configured": true, "primary": "Gemini (gemini-2.5-pro)", "gemini": true, "groq": false },
+  "ai": { "configured": true, "primary": "Gemini (gemini-3.1-pro-preview)", "gemini": true, "groq": false },
   "social": { "youtube": true, "tiktok": false }
 }
 ```
