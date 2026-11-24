@@ -8,5 +8,6 @@ dist/
 *.tsbuildinfo
 .vercel
 image-search/
+.local-store/
 .DS_Store
 npm-debug.log*

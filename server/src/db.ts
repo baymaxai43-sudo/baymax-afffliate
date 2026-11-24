@@ -1,10 +1,16 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { config } from './config';
+import { createLocalClient } from './localStore';
 
 let client: SupabaseClient | null = null;
 
 export function db(): SupabaseClient {
   if (!client) {
+    // Offline / preview mode: file-backed JSON store (no Supabase needed)
+    if (process.env.LOCAL_STORE === '1') {
+      client = createLocalClient() as unknown as SupabaseClient;
+      return client;
+    }
     if (!config.supabaseServiceKey) {
       throw new Error('SUPABASE_SERVICE_KEY is not set');
     }
