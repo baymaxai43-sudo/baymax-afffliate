@@ -1,0 +1,12 @@
+node_modules/
+.next/
+out/
+dist/
+.env
+.env.*
+!.env.example
+*.tsbuildinfo
+.vercel
+image-search/
+.DS_Store
+npm-debug.log*
