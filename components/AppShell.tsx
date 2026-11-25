@@ -14,21 +14,14 @@ const NAV = [
 ];
 
 
-
-const DEMO_SESSION_KEY = 'baymax-demo-session';
-
 export function AppShell({ title, children, actions }: { title: string; children: ReactNode; actions?: ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const [status, setStatus] = useState<AuthStatus | null>(null);
-  const [demoMode, setDemoMode] = useState(false);
 
   useEffect(() => {
-    if (window.localStorage.getItem(DEMO_SESSION_KEY) === 'active') {
-      setDemoMode(true);
-      setStatus({ needsSetup: false, tourCompleted: true, authenticated: true });
-      return;
-    }
+    // Clear any leftover flag from the old local-only demo gate
+    window.localStorage.removeItem('baymax-demo-session');
     api<AuthStatus>('/auth/status')
       .then((s) => {
         setStatus(s);
@@ -50,11 +43,7 @@ export function AppShell({ title, children, actions }: { title: string; children
   }
 
   async function logout() {
-    if (demoMode) {
-      window.localStorage.removeItem(DEMO_SESSION_KEY);
-    } else {
-      await api('/auth/logout', { method: 'POST' }).catch(() => {});
-    }
+    await api('/auth/logout', { method: 'POST' }).catch(() => {});
     router.replace('/');
   }
 
@@ -81,7 +70,6 @@ export function AppShell({ title, children, actions }: { title: string; children
         </nav>
 
         <div className="baymax-top-actions">
-          {demoMode && <span className="baymax-demo-pill">DEMO MODE</span>}
           {actions}
           <Link href="/profile" className="baymax-avatar-button" aria-label="Open profile page">
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -110,7 +98,7 @@ export function AppShell({ title, children, actions }: { title: string; children
         ))}
       </nav>
 
-      {!demoMode && !status.tourCompleted && <Tour onDone={() => setStatus((s) => s && { ...s, tourCompleted: true })} />}
+      {!status.tourCompleted && <Tour onDone={() => setStatus((s) => s && { ...s, tourCompleted: true })} />}
     </div>
   );
 }

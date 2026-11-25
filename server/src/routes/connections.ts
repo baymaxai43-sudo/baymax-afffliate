@@ -92,7 +92,7 @@ export async function connectionRoutes(app: FastifyInstance): Promise<void> {
     async (req, reply) => {
       const q = req.query;
       if (q.error || !q.code || !q.state || !(await verifyState('youtube', q.state))) {
-        return reply.redirect(`${config.appUrl}/settings?connect=youtube&status=failed`);
+        return reply.redirect(`${config.appUrl}/connected-accounts?connect=youtube&status=failed`);
       }
       try {
         const res = await fetch('https://oauth2.googleapis.com/token', {
@@ -128,10 +128,10 @@ export async function connectionRoutes(app: FastifyInstance): Promise<void> {
           },
           { onConflict: 'platform' }
         );
-        return reply.redirect(`${config.appUrl}/settings?connect=youtube&status=ok`);
+        return reply.redirect(`${config.appUrl}/connected-accounts?connect=youtube&status=ok`);
       } catch (e) {
         console.error('youtube oauth failed:', e);
-        return reply.redirect(`${config.appUrl}/settings?connect=youtube&status=failed`);
+        return reply.redirect(`${config.appUrl}/connected-accounts?connect=youtube&status=failed`);
       }
     }
   );
@@ -141,7 +141,7 @@ export async function connectionRoutes(app: FastifyInstance): Promise<void> {
     async (req, reply) => {
       const q = req.query;
       if (q.error || !q.code || !q.state || !(await verifyState('tiktok', q.state))) {
-        return reply.redirect(`${config.appUrl}/settings?connect=tiktok&status=failed`);
+        return reply.redirect(`${config.appUrl}/connected-accounts?connect=tiktok&status=failed`);
       }
       try {
         const res = await fetch('https://open.tiktokapis.com/v2/oauth/token/', {
@@ -171,10 +171,10 @@ export async function connectionRoutes(app: FastifyInstance): Promise<void> {
           },
           { onConflict: 'platform' }
         );
-        return reply.redirect(`${config.appUrl}/settings?connect=tiktok&status=ok`);
+        return reply.redirect(`${config.appUrl}/connected-accounts?connect=tiktok&status=ok`);
       } catch (e) {
         console.error('tiktok oauth failed:', e);
-        return reply.redirect(`${config.appUrl}/settings?connect=tiktok&status=failed`);
+        return reply.redirect(`${config.appUrl}/connected-accounts?connect=tiktok&status=failed`);
       }
     }
   );

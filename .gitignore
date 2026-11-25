@@ -11,3 +11,4 @@ image-search/
 .local-store/
 .DS_Store
 npm-debug.log*
+public/api-docs/

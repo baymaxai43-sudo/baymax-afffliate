@@ -33,11 +33,7 @@ function ProfileBody() {
   );
 
   async function signOut() {
-    if (window.localStorage.getItem('baymax-demo-session') === 'active') {
-      window.localStorage.removeItem('baymax-demo-session');
-    } else {
-      await api('/auth/logout', { method: 'POST' }).catch(() => {});
-    }
+    await api('/auth/logout', { method: 'POST' }).catch(() => {});
     router.replace('/');
   }
 
