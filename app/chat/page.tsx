@@ -141,6 +141,42 @@ function ChatBody() {
     });
   }
 
+  async function captureScreenshot() {
+    setError('');
+    if (!navigator.mediaDevices?.getDisplayMedia) {
+      setError('Screen capture is not supported by this browser. You can attach a screenshot file instead.');
+      return;
+    }
+    let stream: MediaStream | undefined;
+    try {
+      // The browser will ask you to choose a tab, window, or entire screen.
+      stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: false });
+      const track = stream.getVideoTracks()[0];
+      if (!track) throw new Error('No screen was selected.');
+      const video = document.createElement('video');
+      video.srcObject = stream;
+      video.muted = true;
+      await video.play();
+      const canvas = document.createElement('canvas');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const context = canvas.getContext('2d');
+      if (!context) throw new Error('Could not capture the selected screen.');
+      context.drawImage(video, 0, 0, canvas.width, canvas.height);
+      const blob = await new Promise<Blob>((resolve, reject) => {
+        canvas.toBlob((result) => result ? resolve(result) : reject(new Error('Screenshot capture failed.')), 'image/png');
+      });
+      const file = new File([blob], `baymax-screenshot-${Date.now()}.png`, { type: 'image/png' });
+      addFiles([file]);
+    } catch (e: any) {
+      if (e?.name !== 'NotAllowedError' && e?.name !== 'AbortError') {
+        setError(e?.message ?? 'Could not capture the selected screen.');
+      }
+    } finally {
+      stream?.getTracks().forEach((track) => track.stop());
+    }
+  }
+
   function removePending(index: number) {
     setPending((prev) => {
       const target = prev[index];
@@ -409,6 +445,14 @@ function ChatBody() {
               aria-label="Attach files"
             >
               <Icon name="paperclip" className="w-4 h-4" />
+            </button>
+            <button
+              onClick={captureScreenshot}
+              title="Capture a screenshot of a tab, window, or screen"
+              className="glass-soft w-9 h-9 rounded-full flex items-center justify-center text-navy/55 hover:text-sky-deep transition shrink-0"
+              aria-label="Capture screenshot"
+            >
+              <Icon name="camera" className="w-4 h-4" />
             </button>
             <input
               value={input}
