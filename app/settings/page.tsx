@@ -265,6 +265,8 @@ function SettingsBody() {
               { name: "Pinterest", mark: "P" }, { name: "X", mark: "𝕏" },
               { name: "Threads", mark: "@" }, { name: "Telegram", mark: "➤" },
               { name: "Reddit", mark: "r/" }, { name: "Snapchat", mark: "👻" },
+              { name: "LinkedIn", mark: "in" }, { name: "WhatsApp", mark: "◉" },
+              { name: "Twitch", mark: "▣" }, { name: "Medium", mark: "M" },
             ].map((platform) => (
               <div key={platform.name} className="flex items-center gap-3 rounded-xl border border-navy/5 bg-white/65 px-3.5 py-3">
                 <span className="grid h-8 w-8 place-items-center rounded-xl bg-sky-deep/10 text-sm font-black text-sky-deep">{platform.mark}</span>
