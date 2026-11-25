@@ -18,7 +18,6 @@ export function AppShell({ title, children, actions, back }: { title: string; ch
   const router = useRouter();
   const pathname = usePathname();
   const [status, setStatus] = useState<AuthStatus | null>(null);
-  const [live, setLive] = useState<boolean | null>(null);
 
   useEffect(() => {
     // Clear any leftover flag from the old local-only demo gate
@@ -27,7 +26,6 @@ export function AppShell({ title, children, actions, back }: { title: string; ch
       .then((s) => {
         setStatus(s);
         if (!s.authenticated) router.replace('/');
-        else api<{ autopilot: { enabled: boolean } }>('/settings').then((r) => setLive(r.autopilot.enabled)).catch(() => {});
       })
       .catch(() => router.replace('/'));
   }, [router]);
@@ -81,12 +79,6 @@ export function AppShell({ title, children, actions, back }: { title: string; ch
         </nav>
 
         <div className="baymax-top-actions">
-          {live !== null && (
-            <Link href="/connected-accounts" className={`bx-live-pill ${live ? 'is-on' : ''}`} title="Autopilot status">
-              <span className="bx-live-dot" />
-              <span className="bx-live-label">{live ? 'Autopilot live' : 'Autopilot paused'}</span>
-            </Link>
-          )}
           {actions}
           <Link href="/profile" className="baymax-avatar-button" aria-label="Open profile page">
             {/* eslint-disable-next-line @next/next/no-img-element */}
