@@ -3,6 +3,10 @@ export const config = {
   supabaseUrl: process.env.SUPABASE_URL || 'https://opcdbpbnhabdcqkfrjrt.supabase.co',
   supabaseServiceKey: process.env.SUPABASE_SERVICE_KEY || '',
   appUrl: (process.env.APP_URL || 'http://localhost:3000').replace(/\/$/, ''),
+  allowedOrigins: (process.env.ALLOWED_ORIGINS || '')
+    .split(',')
+    .map((o) => o.trim().replace(/\/$/, ''))
+    .filter(Boolean),
 
   // AI — Gemini primary, Groq fallback
   geminiApiKey: process.env.GEMINI_API_KEY || '',

@@ -43,8 +43,16 @@ export function buildApp(): FastifyInstance {
   // CORS: allow only the frontend origins (browser calls normally go through
   // the Vercel same-origin proxy, so this is defense-in-depth for any direct
   // browser → backend calls). Server-to-server traffic is unaffected.
+  // Extra origins can be added without a deploy via ALLOWED_ORIGINS
+  // (comma-separated, e.g. "https://a.vercel.app,https://b.com").
   const allowedOrigins = new Set(
-    [config.appUrl, 'https://baymax-shoppey.vercel.app', 'http://localhost:3000'].filter(Boolean)
+    [
+      config.appUrl,
+      'https://baymax-afffliate.vercel.app',
+      'https://baymax-shoppey.vercel.app',
+      'http://localhost:3000',
+      ...config.allowedOrigins,
+    ].filter(Boolean)
   );
   app.register(cors, {
     origin: (origin, cb) => {
