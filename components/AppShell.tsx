@@ -16,7 +16,7 @@ const NAV = [
 const PROFILE_LINKS = [
   { href: '/settings#profile', label: 'Profile', icon: 'eye' },
   { href: '/settings#connected-accounts', label: 'Connected Accounts', icon: 'external' },
-  { href: '/content', label: 'Scheduled Tasks', icon: 'calendar' },
+  { href: '/content?status=scheduled', label: 'Scheduled Tasks', icon: 'calendar' },
   { href: '/content', label: 'Content', icon: 'sparkles' },
   { href: '/analytics', label: 'Analytics', icon: 'chart' },
   { href: '/settings#autopilot', label: 'Autopilot Settings', icon: 'zap' },
