@@ -8,16 +8,16 @@ import { Icon } from '@/components/icons';
 import { Card } from '@/components/ui';
 
 const sections = [
-  { title: 'Profile', description: 'Your personal details and account information', href: '/settings#profile', icon: 'user' },
+  { title: 'Profile', description: 'Your personal details and account information', href: '/settings#profile', icon: 'eye' },
   { title: 'Scheduled Tasks', description: 'Review and manage scheduled activity', href: '/content?status=scheduled', icon: 'calendar' },
-  { title: 'Connected Accounts', description: 'Manage social and affiliate connections', href: '/settings#connected-accounts', icon: 'link' },
-  { title: 'Wallet', description: 'Affiliate earnings and payment information', href: '/analytics', icon: 'wallet' },
-  { title: 'Security', description: 'Password and account protection', href: '/settings#security', icon: 'shield' },
-  { title: 'System Preferences', description: 'Theme and workspace preferences', href: '/settings#appearance', icon: 'sliders' },
+  { title: 'Connected Accounts', description: 'Manage social and affiliate connections', href: '/settings#connected-accounts', icon: 'external' },
+  { title: 'Wallet', description: 'Affiliate earnings and payment information', href: '/analytics', icon: 'chart' },
+  { title: 'Security', description: 'Password and account protection', href: '/settings#security', icon: 'gear' },
+  { title: 'System Preferences', description: 'Theme and workspace preferences', href: '/settings#appearance', icon: 'gear' },
   { title: 'Autopilot Settings', description: 'Control how Baymax works for you', href: '/settings#autopilot', icon: 'zap' },
-  { title: 'Content', description: 'Your generated posts and publishing queue', href: '/content', icon: 'file-text' },
+  { title: 'Content', description: 'Your generated posts and publishing queue', href: '/content', icon: 'file' },
   { title: 'Analytics', description: 'Clicks, sales and performance insights', href: '/analytics', icon: 'chart' },
-  { title: 'About', description: 'Learn more about Baymax', href: '/about', icon: 'info' },
+  { title: 'About', description: 'Learn more about Baymax', href: '/about', icon: 'eye' },
 ];
 
 function ProfileBody() {
@@ -53,13 +53,13 @@ function ProfileBody() {
               <strong className="block text-sm font-bold text-navy">{item.title}</strong>
               <span className="mt-0.5 block text-xs text-navy/45">{item.description}</span>
             </span>
-            <Icon name="chevron-right" className="h-4 w-4 shrink-0 text-navy/35" />
+            <Icon name="external" className="h-3.5 w-3.5 shrink-0 text-navy/35" />
           </Link>
         ))}
       </div>
       <button onClick={signOut} className="flex w-full items-center gap-3 rounded-2xl border border-rose-200/70 bg-white/45 px-4 py-4 text-left text-sm font-bold text-rose-600 transition hover:bg-rose-50/70">
         <Icon name="logout" className="h-4 w-4" /> Sign Out
-        <Icon name="chevron-right" className="ml-auto h-4 w-4" />
+        <Icon name="external" className="ml-auto h-3.5 w-3.5" />
       </button>
     </div>
   );
