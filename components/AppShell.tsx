@@ -13,17 +13,7 @@ const NAV = [
   { href: '/products', label: 'Product', icon: 'box' },
 ];
 
-const PROFILE_LINKS = [
-  { href: '/settings#profile', label: 'Profile', icon: 'eye' },
-  { href: '/settings#connected-accounts', label: 'Connected Accounts', icon: 'external' },
-  { href: '/content?status=scheduled', label: 'Scheduled Tasks', icon: 'calendar' },
-  { href: '/content', label: 'Content', icon: 'sparkles' },
-  { href: '/analytics', label: 'Analytics', icon: 'chart' },
-  { href: '/settings#autopilot', label: 'Autopilot Settings', icon: 'zap' },
-  { href: '/settings#security', label: 'Security', icon: 'gear' },
-  { href: '/settings#appearance', label: 'Appearance', icon: 'eye' },
-  { href: '/about', label: 'About', icon: 'file' },
-];
+
 
 const DEMO_SESSION_KEY = 'baymax-demo-session';
 
@@ -31,7 +21,6 @@ export function AppShell({ title, children, actions }: { title: string; children
   const router = useRouter();
   const pathname = usePathname();
   const [status, setStatus] = useState<AuthStatus | null>(null);
-  const [profileOpen, setProfileOpen] = useState(false);
   const [demoMode, setDemoMode] = useState(false);
 
   useEffect(() => {
@@ -47,10 +36,6 @@ export function AppShell({ title, children, actions }: { title: string; children
       })
       .catch(() => router.replace('/'));
   }, [router]);
-
-  useEffect(() => {
-    setProfileOpen(false);
-  }, [pathname]);
 
   if (!status?.authenticated) {
     return (
@@ -104,60 +89,25 @@ export function AppShell({ title, children, actions }: { title: string; children
         <div className="baymax-top-actions">
           {demoMode && <span className="baymax-demo-pill">DEMO MODE</span>}
           {actions}
-          <div className="relative">
-            <button
-              type="button"
-              onClick={() => setProfileOpen((v) => !v)}
-              className={`baymax-avatar-button ${profileOpen ? 'is-open' : ''}`}
-              aria-label="Open profile menu"
-              aria-expanded={profileOpen}
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/baymax-icon.png" alt="" />
-              <span className="baymax-online-dot" />
-            </button>
-            {profileOpen && (
-              <>
-                <button className="fixed inset-0 z-40 cursor-default" aria-label="Close profile menu" onClick={() => setProfileOpen(false)} />
-                <div className="baymax-profile-menu">
-                  <div className="baymax-profile-heading">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src="/baymax-icon.png" alt="" />
-                    <div>
-                      <strong>Baymax account</strong>
-                      <span>{demoMode ? 'Demo session' : 'Private workspace'}</span>
-                    </div>
-                  </div>
-                  <div className="baymax-profile-links">
-                    {PROFILE_LINKS.map((item) => (
-                      <Link href={item.href} key={item.label} className="baymax-profile-link">
-                        <Icon name={item.icon} className="w-4 h-4" />
-                        <span>{item.label}</span>
-                      </Link>
-                    ))}
-                  </div>
-                  <button type="button" onClick={logout} className="baymax-signout">
-                    <Icon name="logout" className="w-4 h-4" />
-                    Sign Out
-                  </button>
-                </div>
-              </>
-            )}
-          </div>
+          <Link href="/profile" className="baymax-avatar-button" aria-label="Open profile page">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/baymax-icon.png" alt="" />
+            <span className="baymax-online-dot" />
+          </Link>
         </div>
       </header>
 
-      <main className="baymax-main">
-        <div className="baymax-page-heading">
+      <main className={`baymax-main ${title === 'Chat' ? 'baymax-main-chat' : ''}`}>
+        {title !== 'Chat' && <div className="baymax-page-heading">
           <div>
             <p className="baymax-eyebrow">YOUR AFFILIATE WORKSPACE</p>
             <h1>{title === 'Dashboard' ? 'Home' : title === 'Products' ? 'Product' : title}</h1>
           </div>
-        </div>
+        </div>}
         {children}
       </main>
 
-      <nav className="baymax-nav baymax-nav-mobile" aria-label="Primary navigation">
+      <nav className="baymax-nav baymax-nav-mobile" aria-label="Primary navigation" hidden>
         {NAV.map((item) => (
           <Link key={item.href} href={item.href} className={`baymax-nav-link ${activeNav(item.href) ? 'is-active' : ''}`}>
             <Icon name={item.icon} className="w-[18px] h-[18px]" />
