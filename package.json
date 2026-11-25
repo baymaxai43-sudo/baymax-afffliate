@@ -9,7 +9,11 @@
     "start": "next start",
     "server": "tsx server/src/index.ts",
     "hash": "tsx server/src/hash.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "docs:sync": "node scripts/sync-api-docs.mjs",
+    "prebuild": "node scripts/sync-api-docs.mjs",
+    "predev": "node scripts/sync-api-docs.mjs",
+    "docs:lint": "npx @redocly/cli lint docs/openapi.yaml"
   },
   "dependencies": {
     "@fastify/cookie": "^11.0.2",

@@ -62,7 +62,7 @@ API_ORIGIN=http://localhost:4000 npm run dev   # Next proxies /api + /c → :400
 
 ## 📚 API Reference
 
-Every endpoint (auth, products, content, analytics, chat, settings, OAuth, tracking, cron), request/response examples, the AI request flow, and CORS rules → **[docs/API.md](docs/API.md)**.
+Every endpoint (auth, products, content, analytics, chat, settings, OAuth, tracking, cron), request/response examples, the AI request flow, and CORS rules → **[docs/API.md](docs/API.md)**. Swagger UI lives at **`/api-docs`** (spec: [`docs/openapi.yaml`](docs/openapi.yaml)).
 
 ## 🏗️ Architecture (Vercel + Render)
 

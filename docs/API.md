@@ -2,6 +2,8 @@
 
 Complete HTTP API for the Baymax-Shoppey backend (Fastify).
 
+> **Interactive docs:** the full OpenAPI 3.1 spec is in [`docs/openapi.yaml`](openapi.yaml). Open it in Swagger UI at **`/api-docs`** on the deployed app (or `npm run dev` → http://localhost:3000/api-docs), paste it into https://editor.swagger.io, or run `npm run docs:lint` to validate it.
+
 ---
 
 ## Architecture & base URLs

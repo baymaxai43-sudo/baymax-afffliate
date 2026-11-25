@@ -153,7 +153,7 @@ function ContentBody() {
             key={t}
             onClick={() => setTab(t)}
             className={`text-xs font-bold px-3.5 py-2 rounded-full transition capitalize ${
-              tab === t ? 'bg-navy text-white shadow-md' : 'bg-white text-navy/55 border border-navy/10 hover:border-navy/30'
+              tab === t ? 'bx-tab is-active' : 'bx-tab'
             }`}
           >
             {t}
@@ -171,7 +171,7 @@ function ContentBody() {
       </div>
 
       {toast && (
-        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 bg-navy text-white text-sm font-semibold px-5 py-3 rounded-full shadow-2xl fade-up">
+        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 bx-toast text-sm font-semibold px-5 py-3 rounded-full shadow-2xl fade-up">
           {toast}
         </div>
       )}
@@ -285,7 +285,7 @@ function ContentBody() {
                     className={`flex-1 py-2.5 rounded-xl text-sm font-bold capitalize border transition ${
                       platforms.includes(pl)
                         ? 'bg-sky-deep text-white border-sky-deep shadow-lg shadow-sky-deep/20'
-                        : 'bg-white text-navy/50 border-navy/10'
+                        : 'bx-chip-off'
                     }`}
                   >
                     {pl === 'tiktok' ? '🎵 ' : '▶️ '}
@@ -324,7 +324,7 @@ function ContentBody() {
                 </a>
               )}
             </div>
-            <div className="bg-cloud rounded-xl p-4 text-sm leading-relaxed text-navy/80 whitespace-pre-wrap max-h-72 overflow-y-auto">
+            <div className="bx-well rounded-xl p-4 text-sm leading-relaxed text-navy/80 whitespace-pre-wrap max-h-72 overflow-y-auto">
               {viewing.body}
             </div>
             {viewing.hashtags?.length > 0 && (

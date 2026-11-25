@@ -29,10 +29,10 @@ export function Button({
     lg: 'text-base px-6 py-3.5',
   }[size];
   const variants = {
-    primary: 'bg-navy text-white hover:bg-navy-2 shadow-lg shadow-navy/20',
-    sky: 'bg-sky-deep text-white hover:bg-sky shadow-lg shadow-sky-deep/30',
-    ghost: 'bg-navy/5 text-navy hover:bg-navy/10',
-    outline: 'border border-navy/15 bg-white text-navy hover:border-navy/30',
+    primary: 'bx-btn-primary',
+    sky: 'bx-btn-energy',
+    ghost: 'bx-btn-ghost',
+    outline: 'bx-btn-outline',
     danger: 'bg-danger/10 text-danger hover:bg-danger/20',
   }[variant];
   return (
@@ -44,7 +44,7 @@ export function Button({
 
 export function Card({ children, className = '' }: { children: ReactNode; className?: string }) {
   return (
-    <div className={`bg-white/65 backdrop-blur-xl rounded-3xl border border-white/80 shadow-[0_12px_36px_rgba(36,75,125,.08),inset_0_1px_0_rgba(255,255,255,.85)] ${className}`}>
+    <div className={`bx-card ${className}`}>
       {children}
     </div>
   );
@@ -90,7 +90,7 @@ export function Input({
       placeholder={placeholder}
       onChange={(e) => onChange(e.target.value)}
       onKeyDown={onKeyDown}
-      className={`w-full rounded-xl border border-navy/10 bg-white px-4 py-2.5 text-sm text-ink placeholder:text-navy/35 outline-none focus:border-sky-deep focus:ring-2 focus:ring-sky-deep/20 transition ${className}`}
+      className={`w-full rounded-xl bx-input border px-4 py-2.5 text-sm text-ink placeholder:text-navy/35 outline-none focus:border-sky-deep focus:ring-2 focus:ring-sky-deep/20 transition ${className}`}
     />
   );
 }
@@ -118,7 +118,7 @@ export function Modal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-navy/40 backdrop-blur-[2px]" onClick={onClose} />
-      <div className={`relative bg-white rounded-2xl shadow-2xl w-full ${width} fade-up max-h-[90vh] overflow-y-auto`}>
+      <div className={`bx-modal relative rounded-2xl shadow-2xl w-full ${width} fade-up max-h-[90vh] overflow-y-auto`}>
         <div className="flex items-center justify-between px-6 pt-5 pb-3">
           <h3 className="font-bold text-lg text-navy">{title}</h3>
           <button onClick={onClose} className="text-navy/40 hover:text-navy p-1" aria-label="Close">

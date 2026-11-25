@@ -14,47 +14,38 @@ const NAV = [
 ];
 
 
-
-const DEMO_SESSION_KEY = 'baymax-demo-session';
-
 export function AppShell({ title, children, actions }: { title: string; children: ReactNode; actions?: ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const [status, setStatus] = useState<AuthStatus | null>(null);
-  const [demoMode, setDemoMode] = useState(false);
+  const [live, setLive] = useState<boolean | null>(null);
 
   useEffect(() => {
-    if (window.localStorage.getItem(DEMO_SESSION_KEY) === 'active') {
-      setDemoMode(true);
-      setStatus({ needsSetup: false, tourCompleted: true, authenticated: true });
-      return;
-    }
+    // Clear any leftover flag from the old local-only demo gate
+    window.localStorage.removeItem('baymax-demo-session');
     api<AuthStatus>('/auth/status')
       .then((s) => {
         setStatus(s);
         if (!s.authenticated) router.replace('/');
+        else api<{ autopilot: { enabled: boolean } }>('/settings').then((r) => setLive(r.autopilot.enabled)).catch(() => {});
       })
       .catch(() => router.replace('/'));
   }, [router]);
 
   if (!status?.authenticated) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-cloud">
+      <div className="bx-boot min-h-screen flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/baymax-icon.png" alt="" className="w-12 h-12 animate-pulse bg-white rounded-xl" />
-          <p className="text-sm text-navy/50 font-medium">Opening Baymax…</p>
+          <img src="/baymax-icon.png" alt="" className="w-12 h-12 animate-pulse rounded-full" />
+          <p className="text-sm font-medium">Powering up Baymax…</p>
         </div>
       </div>
     );
   }
 
   async function logout() {
-    if (demoMode) {
-      window.localStorage.removeItem(DEMO_SESSION_KEY);
-    } else {
-      await api('/auth/logout', { method: 'POST' }).catch(() => {});
-    }
+    await api('/auth/logout', { method: 'POST' }).catch(() => {});
     router.replace('/');
   }
 
@@ -71,9 +62,12 @@ export function AppShell({ title, children, actions }: { title: string; children
       </div>
 
       <header className="baymax-topbar">
+        <Link href="/dashboard" className="bx-home-btn" aria-label="Home" title="Home">
+          <Icon name="home" className="w-5 h-5" />
+        </Link>
         <nav className="baymax-nav baymax-nav-desktop" aria-label="Primary navigation">
           {NAV.map((item) => (
-            <Link key={item.href} href={item.href} className={`baymax-nav-link ${activeNav(item.href) ? 'is-active' : ''}`}>
+            <Link key={item.href} href={item.href} className={`baymax-nav-link ${item.href === '/dashboard' ? 'bx-nav-home' : ''} ${activeNav(item.href) ? 'is-active' : ''}`}>
               <Icon name={item.icon} className="w-[17px] h-[17px]" />
               <span>{item.label}</span>
             </Link>
@@ -81,7 +75,12 @@ export function AppShell({ title, children, actions }: { title: string; children
         </nav>
 
         <div className="baymax-top-actions">
-          {demoMode && <span className="baymax-demo-pill">DEMO MODE</span>}
+          {live !== null && (
+            <Link href="/connected-accounts" className={`bx-live-pill ${live ? 'is-on' : ''}`} title="Autopilot status">
+              <span className="bx-live-dot" />
+              <span className="bx-live-label">{live ? 'Autopilot live' : 'Autopilot paused'}</span>
+            </Link>
+          )}
           {actions}
           <Link href="/profile" className="baymax-avatar-button" aria-label="Open profile page">
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -110,7 +109,7 @@ export function AppShell({ title, children, actions }: { title: string; children
         ))}
       </nav>
 
-      {!demoMode && !status.tourCompleted && <Tour onDone={() => setStatus((s) => s && { ...s, tourCompleted: true })} />}
+      {!status.tourCompleted && <Tour onDone={() => setStatus((s) => s && { ...s, tourCompleted: true })} />}
     </div>
   );
 }

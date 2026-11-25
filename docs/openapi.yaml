@@ -1,0 +1,970 @@
+openapi: 3.1.0
+info:
+  title: Baymax-Shoppey API
+  version: 1.0.0
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+  description: |
+    HTTP API for the Baymax-Shoppey backend (Fastify 5).
+
+    **Base URLs**
+    - Through the Vercel frontend, every path is prefixed with `/api` (e.g. `/api/products`).
+    - Directly on the Render backend, paths are used exactly as listed.
+
+    **Auth** — single owner, no users table. `POST /auth/login` (or `/auth/setup` on first run)
+    sets an httpOnly `bs_session` cookie (JWT, 30 days) and also returns the token. Protected
+    endpoints accept the cookie or `Authorization: Bearer <token>`.
+
+    **Errors** — every error body is `{ "error": "<message>" }`.
+servers:
+  - url: https://baymax-shoppey.vercel.app/api
+    description: Production (via Vercel proxy)
+  - url: https://baymax-shoppey-api.onrender.com
+    description: Production backend (Render, direct)
+  - url: http://localhost:3000/api
+    description: Local (Next dev server)
+  - url: http://localhost:4000
+    description: Local backend (npm run server)
+tags:
+  - name: Health
+    description: Liveness
+  - name: Auth
+    description: Owner password and session
+  - name: Products
+    description: Affiliate products
+  - name: Content
+    description: AI-generated posts and publishing
+  - name: Analytics
+    description: Clicks, sales and revenue
+  - name: Chat
+    description: Baymax agent chat
+  - name: Settings
+    description: Autopilot and configuration
+  - name: Connections
+    description: YouTube and TikTok OAuth
+  - name: Tracking
+    description: Short-link click tracking
+  - name: Cron
+    description: Scheduled autopilot ticks
+security:
+  - cookieAuth: []
+  - bearerAuth: []
+
+paths:
+  /health:
+    get:
+      operationId: getHealth
+      tags: [Health]
+      summary: Liveness check
+      security: []
+      responses:
+        '200':
+          description: Service is up
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean, example: true }
+                  app: { type: string, example: baymax-shoppey }
+                  ai: { type: boolean, description: Whether any AI key is configured }
+
+  # ───────────────────────── Auth ─────────────────────────
+  /auth/status:
+    get:
+      operationId: getAuthStatus
+      tags: [Auth]
+      summary: Setup and session status
+      security: []
+      responses:
+        '200':
+          description: Current status (never 500s; dbReady=false when the DB is unreachable)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AuthStatus' }
+  /auth/setup:
+    post:
+      operationId: setupPassword
+      tags: [Auth]
+      summary: First run — create the owner password
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [password]
+              properties:
+                password: { type: string, minLength: 8, maxLength: 128 }
+      responses:
+        '200':
+          description: Password created, session cookie set
+          headers:
+            Set-Cookie: { schema: { type: string }, description: 'bs_session=<jwt>' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/TokenResponse' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '409':
+          description: Password already set
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+  /auth/login:
+    post:
+      operationId: login
+      tags: [Auth]
+      summary: Sign in with the owner password
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [password]
+              properties:
+                password: { type: string, minLength: 1, maxLength: 128 }
+      responses:
+        '200':
+          description: Signed in, session cookie set
+          headers:
+            Set-Cookie: { schema: { type: string }, description: 'bs_session=<jwt>' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/TokenResponse' }
+        '401':
+          description: Incorrect password
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+        '409':
+          description: No password yet (`needs_setup`)
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+        '429':
+          description: 10 failed attempts per IP in 15 minutes
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+  /auth/logout:
+    post:
+      operationId: logout
+      tags: [Auth]
+      summary: Clear the session cookie
+      security: []
+      responses:
+        '200': { $ref: '#/components/responses/Ok' }
+  /auth/password:
+    post:
+      operationId: changePassword
+      tags: [Auth]
+      summary: Change the owner password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [current, next]
+              properties:
+                current: { type: string, minLength: 1 }
+                next: { type: string, minLength: 8, maxLength: 128 }
+      responses:
+        '200': { $ref: '#/components/responses/Ok' }
+        '401':
+          description: Unauthorized, or current password incorrect
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+        '409':
+          description: Password is managed by OWNER_PASSWORD_HASH on the server
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+  /auth/tour:
+    post:
+      operationId: completeTour
+      tags: [Auth]
+      summary: Mark the onboarding tour completed
+      responses:
+        '200': { $ref: '#/components/responses/Ok' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  # ───────────────────────── Products ─────────────────────────
+  /products:
+    get:
+      operationId: listProducts
+      tags: [Products]
+      summary: List products (newest first, max 100)
+      parameters:
+        - { name: q, in: query, schema: { type: string }, description: 'Search title, description or category' }
+        - { name: status, in: query, schema: { type: string, enum: [active, paused] } }
+      responses:
+        '200':
+          description: Products
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  products: { type: array, items: { $ref: '#/components/schemas/Product' } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+    post:
+      operationId: createProduct
+      tags: [Products]
+      summary: Add a product
+      description: Send an AliExpress `url` to scrape it automatically, or `title` + `affiliate_url` for a manual entry.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                url: { type: string, description: AliExpress product or affiliate link to import }
+                title: { type: string }
+                description: { type: string }
+                price: { type: number }
+                currency: { type: string, default: USD }
+                image_url: { type: string }
+                affiliate_url: { type: string }
+                category: { type: string }
+            examples:
+              import: { value: { url: 'https://s.click.aliexpress.com/e/_abc123' } }
+              manual: { value: { title: 'LED desk lamp', affiliate_url: 'https://s.click.aliexpress.com/e/_xyz', price: 19.99 } }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  product: { $ref: '#/components/schemas/Product' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '422':
+          description: Import from URL failed
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+  /products/{id}:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    patch:
+      operationId: updateProduct
+      tags: [Products]
+      summary: Update a product
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title: { type: string }
+                description: { type: [string, 'null'] }
+                price: { type: [number, 'null'] }
+                image_url: { type: [string, 'null'] }
+                affiliate_url: { type: string }
+                category: { type: [string, 'null'] }
+                status: { type: string, enum: [active, paused] }
+      responses:
+        '200': { $ref: '#/components/responses/Ok' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+    delete:
+      operationId: deleteProduct
+      tags: [Products]
+      summary: Delete a product
+      responses:
+        '200': { $ref: '#/components/responses/Ok' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  # ───────────────────────── Content ─────────────────────────
+  /content:
+    get:
+      operationId: listContent
+      tags: [Content]
+      summary: List posts with their product
+      parameters:
+        - { name: status, in: query, schema: { $ref: '#/components/schemas/ContentStatus' } }
+        - { name: platform, in: query, schema: { $ref: '#/components/schemas/Platform' } }
+        - { name: limit, in: query, schema: { type: integer, default: 60, maximum: 200 } }
+      responses:
+        '200':
+          description: Posts
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  content: { type: array, items: { $ref: '#/components/schemas/ContentWithProduct' } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+  /content/generate:
+    post:
+      operationId: generateContent
+      tags: [Content]
+      summary: AI-generate posts for products
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [product_ids]
+              properties:
+                product_ids: { type: array, items: { type: string, format: uuid }, minItems: 1, maxItems: 10 }
+                platforms: { type: array, items: { $ref: '#/components/schemas/Platform' }, default: [tiktok, youtube] }
+                count: { type: integer, minimum: 1, maximum: 4, default: 1, description: Posts per product per platform }
+                schedule: { type: boolean, description: Schedule into the next autopilot slot instead of saving as draft }
+      responses:
+        '200':
+          description: Created posts
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  created: { type: array, items: { $ref: '#/components/schemas/Content' } }
+                  count: { type: integer }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+  /content/{id}/schedule:
+    parameters: [{ $ref: '#/components/parameters/Id' }]
+    post:
+      operationId: scheduleContent
+      tags: [Content]
+      summary: Schedule a post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                scheduled_at: { type: string, format: date-time, description: Defaults to the next autopilot slot }
+      responses:
+        '200':
+          description: Scheduled
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean }
+                  scheduled_at: { type: string, format: date-time }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+  /content/{id}/publish:
+    parameters: [{ $ref: '#/components/parameters/Id' }]
+    post:
+      operationId: publishContent
+      tags: [Content]
+      summary: Publish a post now to its platform
+      responses:
+        '200':
+          description: Published
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean }
+                  id: { type: string, description: External post id }
+                  url: { type: [string, 'null'], description: External post URL }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '502':
+          description: Platform rejected the publish (post marked failed)
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+  /content/{id}/regenerate:
+    parameters: [{ $ref: '#/components/parameters/Id' }]
+    post:
+      operationId: regenerateContent
+      tags: [Content]
+      summary: Rewrite a post's title, body and hashtags with AI
+      responses:
+        '200':
+          description: Regenerated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean }
+                  post: { $ref: '#/components/schemas/ContentWithProduct' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+  /content/{id}:
+    parameters: [{ $ref: '#/components/parameters/Id' }]
+    delete:
+      operationId: deleteContent
+      tags: [Content]
+      summary: Delete a post
+      responses:
+        '200': { $ref: '#/components/responses/Ok' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  # ───────────────────────── Analytics ─────────────────────────
+  /analytics/summary:
+    get:
+      operationId: getAnalyticsSummary
+      tags: [Analytics]
+      summary: Dashboard totals (also triggers a throttled autopilot tick)
+      responses:
+        '200':
+          description: Summary
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  products: { type: integer }
+                  scheduled: { type: integer }
+                  published: { type: integer }
+                  clicks7d: { type: integer }
+                  sales7d: { type: integer }
+                  revenue7d: { type: number }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+  /analytics/timeseries:
+    get:
+      operationId: getAnalyticsTimeseries
+      tags: [Analytics]
+      summary: Daily clicks and sales
+      parameters:
+        - { name: days, in: query, schema: { type: integer, default: 14, minimum: 1, maximum: 90 } }
+      responses:
+        '200':
+          description: Series
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  series:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        day: { type: string, format: date }
+                        clicks: { type: integer }
+                        sales: { type: integer }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+  /analytics/top-products:
+    get:
+      operationId: getTopProducts
+      tags: [Analytics]
+      summary: Top 8 products by clicks, last 30 days
+      responses:
+        '200':
+          description: Top products
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  top:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id: { type: string, format: uuid }
+                        title: { type: string }
+                        price: { type: [number, 'null'] }
+                        currency: { type: [string, 'null'] }
+                        image_url: { type: [string, 'null'] }
+                        clicks: { type: integer }
+                        sales: { type: integer }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+  /analytics/sales:
+    get:
+      operationId: listSales
+      tags: [Analytics]
+      summary: Recent sales
+      parameters:
+        - { name: limit, in: query, schema: { type: integer, default: 30, maximum: 100 } }
+      responses:
+        '200':
+          description: Sales
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  sales: { type: array, items: { $ref: '#/components/schemas/Event' } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+    post:
+      operationId: recordSale
+      tags: [Analytics]
+      summary: Record a sale manually
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [value]
+              properties:
+                product_id: { type: string, format: uuid }
+                value: { type: number, minimum: 0.01 }
+                currency: { type: string, default: USD }
+                note: { type: string }
+      responses:
+        '201': { $ref: '#/components/responses/Ok' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  # ───────────────────────── Chat ─────────────────────────
+  /chat:
+    post:
+      operationId: sendChat
+      tags: [Chat]
+      summary: Talk to the Baymax agent (it can call tools on the store)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [message]
+              properties:
+                message: { type: string, minLength: 1, maxLength: 4000 }
+                attachments: { type: array, maxItems: 6, items: { $ref: '#/components/schemas/Attachment' } }
+      responses:
+        '200':
+          description: Agent reply (AI failures come back as a reply with provider=error)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  reply: { type: string }
+                  provider: { type: string, example: gemini }
+                  toolTrace:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                          enum: [list_products, add_product, generate_content, get_analytics, list_content, record_sale, get_autopilot, set_autopilot, run_scheduler_now]
+                        ok: { type: boolean }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+  /chat/messages:
+    get:
+      operationId: listChatMessages
+      tags: [Chat]
+      summary: Chat history (oldest first)
+      parameters:
+        - { name: limit, in: query, schema: { type: integer, default: 50, maximum: 200 } }
+      responses:
+        '200':
+          description: Messages
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  messages: { type: array, items: { $ref: '#/components/schemas/ChatMessage' } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+    delete:
+      operationId: clearChatMessages
+      tags: [Chat]
+      summary: Clear chat history
+      responses:
+        '200': { $ref: '#/components/responses/Ok' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+  /chat/upload:
+    post:
+      operationId: uploadChatFiles
+      tags: [Chat]
+      summary: Upload attachments (up to 6 files, 15 MB each)
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                files:
+                  type: array
+                  items: { type: string, format: binary }
+      responses:
+        '200':
+          description: Saved files
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  files: { type: array, items: { $ref: '#/components/schemas/Attachment' } }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+  /chat/files/{name}:
+    get:
+      operationId: getChatFile
+      tags: [Chat]
+      summary: Serve a locally stored attachment (LOCAL_STORE=1 only)
+      security: []
+      parameters:
+        - { name: name, in: path, required: true, schema: { type: string } }
+      responses:
+        '200':
+          description: File bytes
+          content: { application/octet-stream: { schema: { type: string, format: binary } } }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  # ───────────────────────── Settings ─────────────────────────
+  /settings:
+    get:
+      operationId: getSettings
+      tags: [Settings]
+      summary: Autopilot, AI and social configuration
+      responses:
+        '200':
+          description: Settings
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  autopilot: { $ref: '#/components/schemas/Autopilot' }
+                  ai:
+                    type: object
+                    properties:
+                      configured: { type: boolean }
+                      primary: { type: string, example: 'Gemini (gemini-3.1-pro-preview)' }
+                      gemini: { type: boolean }
+                      groq: { type: boolean }
+                  social:
+                    type: object
+                    properties:
+                      youtube: { type: boolean, description: OAuth client configured }
+                      tiktok: { type: boolean, description: OAuth client configured }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+  /settings/autopilot:
+    patch:
+      operationId: updateAutopilot
+      tags: [Settings]
+      summary: Update autopilot (partial)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                enabled: { type: boolean }
+                dailyPerPlatform: { type: number, minimum: 0, maximum: 6 }
+                times: { type: array, items: { type: string, pattern: '^\d{2}:\d{2}$' }, maxItems: 6 }
+                brandVoice: { type: string, maxLength: 500 }
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  autopilot: { $ref: '#/components/schemas/Autopilot' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+  /settings/run-now:
+    post:
+      operationId: runSchedulerNow
+      tags: [Settings]
+      summary: Run the autopilot scheduler immediately
+      responses:
+        '200':
+          description: Tick result
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/TickResult' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  # ───────────────────────── Connections ─────────────────────────
+  /connections:
+    get:
+      operationId: getConnections
+      tags: [Connections]
+      summary: YouTube and TikTok connection status
+      responses:
+        '200':
+          description: Status
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Connections' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+  /connections/{platform}/start:
+    get:
+      operationId: startOAuth
+      tags: [Connections]
+      summary: Begin OAuth (browser redirect to the provider)
+      security: []
+      parameters:
+        - { name: platform, in: path, required: true, schema: { $ref: '#/components/schemas/Platform' } }
+      responses:
+        '302': { description: Redirect to Google or TikTok consent screen }
+        '400':
+          description: OAuth client not configured on the server
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+        '404': { $ref: '#/components/responses/NotFound' }
+  /connections/youtube/callback:
+    get:
+      operationId: youtubeOAuthCallback
+      tags: [Connections]
+      summary: Google OAuth callback
+      security: []
+      parameters:
+        - { name: code, in: query, schema: { type: string } }
+        - { name: state, in: query, schema: { type: string } }
+        - { name: error, in: query, schema: { type: string } }
+      responses:
+        '302': { description: 'Redirect to /connected-accounts?connect=youtube&status=ok|failed' }
+  /connections/tiktok/callback:
+    get:
+      operationId: tiktokOAuthCallback
+      tags: [Connections]
+      summary: TikTok OAuth callback
+      security: []
+      parameters:
+        - { name: code, in: query, schema: { type: string } }
+        - { name: state, in: query, schema: { type: string } }
+        - { name: error, in: query, schema: { type: string } }
+      responses:
+        '302': { description: 'Redirect to /connected-accounts?connect=tiktok&status=ok|failed' }
+  /connections/{platform}:
+    delete:
+      operationId: disconnectPlatform
+      tags: [Connections]
+      summary: Disconnect a platform (deletes stored tokens)
+      parameters:
+        - { name: platform, in: path, required: true, schema: { $ref: '#/components/schemas/Platform' } }
+      responses:
+        '200': { $ref: '#/components/responses/Ok' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  # ───────────────────────── Tracking ─────────────────────────
+  /track/{code}:
+    get:
+      operationId: trackClick
+      tags: [Tracking]
+      summary: Log a click and redirect to the affiliate URL
+      description: Public short links use `https://baymax-shoppey.vercel.app/c/{code}` (Next route), which forwards here in split mode.
+      security: []
+      parameters:
+        - { name: code, in: path, required: true, schema: { type: string, example: aB3xK9q } }
+      responses:
+        '302': { description: Redirect to the affiliate URL (or aliexpress.com when the code is unknown) }
+
+  # ───────────────────────── Cron ─────────────────────────
+  /cron/tick:
+    get:
+      operationId: cronTickGet
+      tags: [Cron]
+      summary: Autopilot tick (Vercel cron, daily 09:00 UTC)
+      security: [{ cronBearer: [] }, { cronHeader: [] }]
+      responses:
+        '200':
+          description: Tick result
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - type: object
+                    properties: { ok: { type: boolean } }
+                  - $ref: '#/components/schemas/TickResult'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+    post:
+      operationId: cronTickPost
+      tags: [Cron]
+      summary: Autopilot tick (same as GET)
+      security: [{ cronBearer: [] }, { cronHeader: [] }]
+      responses:
+        '200':
+          description: Tick result
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/TickResult' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: bs_session
+      description: Set automatically by /auth/login. In Swagger UI on the same origin, log in first and the cookie is sent.
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Use the `token` returned by /auth/login or /auth/setup.
+    cronBearer:
+      type: http
+      scheme: bearer
+      description: CRON_SECRET as a bearer token
+    cronHeader:
+      type: apiKey
+      in: header
+      name: x-cron-secret
+
+  parameters:
+    Id:
+      name: id
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+
+  responses:
+    Ok:
+      description: Success
+      content:
+        application/json:
+          schema:
+            type: object
+            properties: { ok: { type: boolean, example: true } }
+    BadRequest:
+      description: Validation failed
+      content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+    Unauthorized:
+      description: Missing or invalid session
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+          example: { error: Unauthorized }
+    NotFound:
+      description: Not found
+      content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+
+  schemas:
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error: { type: string }
+    TokenResponse:
+      type: object
+      properties:
+        ok: { type: boolean }
+        token: { type: string, description: 'JWT, also set as the bs_session cookie' }
+    AuthStatus:
+      type: object
+      properties:
+        needsSetup: { type: boolean }
+        tourCompleted: { type: boolean }
+        authenticated: { type: boolean }
+        dbReady: { type: boolean }
+        passwordSource: { type: [string, 'null'], enum: [render_env, database, null] }
+        app: { type: string }
+    Platform:
+      type: string
+      enum: [tiktok, youtube]
+    ContentStatus:
+      type: string
+      enum: [draft, scheduled, published, failed]
+    Product:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        title: { type: string }
+        description: { type: [string, 'null'] }
+        price: { type: [number, 'null'] }
+        currency: { type: string, default: USD }
+        image_url: { type: [string, 'null'] }
+        affiliate_url: { type: string }
+        short_code: { type: string, description: 'Used in /c/{short_code}' }
+        source: { type: string, default: aliexpress }
+        category: { type: [string, 'null'] }
+        tags: { type: array, items: { type: string } }
+        status: { type: string, enum: [active, paused] }
+        meta: { type: object }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+    Content:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        product_id: { type: [string, 'null'], format: uuid }
+        platform: { $ref: '#/components/schemas/Platform' }
+        format: { type: string, default: video_script }
+        title: { type: [string, 'null'] }
+        body: { type: string }
+        hashtags: { type: array, items: { type: string } }
+        media:
+          type: array
+          items:
+            type: object
+            properties:
+              url: { type: string }
+              type: { type: string, enum: [image, video] }
+        status: { $ref: '#/components/schemas/ContentStatus' }
+        scheduled_at: { type: [string, 'null'], format: date-time }
+        published_at: { type: [string, 'null'], format: date-time }
+        external_id: { type: [string, 'null'] }
+        external_url: { type: [string, 'null'] }
+        error: { type: [string, 'null'] }
+        meta: { type: object }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+    ContentWithProduct:
+      allOf:
+        - $ref: '#/components/schemas/Content'
+        - type: object
+          properties:
+            products:
+              type: [object, 'null']
+              properties:
+                id: { type: string, format: uuid }
+                title: { type: string }
+                image_url: { type: [string, 'null'] }
+                price: { type: [number, 'null'] }
+                currency: { type: string }
+                short_code: { type: string }
+    Event:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        kind: { type: string, enum: [click, sale] }
+        product_id: { type: [string, 'null'], format: uuid }
+        content_id: { type: [string, 'null'], format: uuid }
+        value: { type: [number, 'null'] }
+        currency: { type: string }
+        source: { type: [string, 'null'], example: manual }
+        meta: { type: object }
+        occurred_at: { type: string, format: date-time }
+        products:
+          type: [object, 'null']
+          properties:
+            title: { type: string }
+            short_code: { type: string }
+    Attachment:
+      type: object
+      required: [name, path, mime, size, url]
+      properties:
+        name: { type: string, maxLength: 255 }
+        path: { type: string, maxLength: 512 }
+        mime: { type: string, maxLength: 128 }
+        size: { type: number }
+        url: { type: string, maxLength: 2048 }
+    ChatMessage:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        role: { type: string, enum: [user, assistant] }
+        content: { type: string }
+        meta: { type: object, description: 'attachments (user) or toolTrace + provider (assistant)' }
+        created_at: { type: string, format: date-time }
+    Autopilot:
+      type: object
+      properties:
+        enabled: { type: boolean, default: true }
+        dailyPerPlatform: { type: number, default: 1 }
+        times: { type: array, items: { type: string }, default: ['10:00', '15:00', '19:00'] }
+        brandVoice: { type: string, default: 'friendly, energetic, trustworthy' }
+    TickResult:
+      type: object
+      properties:
+        published: { type: integer }
+        failed: { type: integer }
+        generated: { type: integer }
+        errors: { type: array, items: { type: string } }
+    Connections:
+      type: object
+      properties:
+        youtube:
+          type: object
+          properties:
+            configured: { type: boolean }
+            connected: { type: boolean }
+            channel: { type: [string, 'null'] }
+        tiktok:
+          type: object
+          properties:
+            configured: { type: boolean }
+            connected: { type: boolean }
+            username: { type: [string, 'null'] }

@@ -10,10 +10,6 @@ export async function api<T = any>(
   path: string,
   opts: { method?: string; body?: unknown } = {}
 ): Promise<T> {
-  const demoSession = typeof window !== 'undefined' && window.localStorage.getItem('baymax-demo-session') === 'active';
-  if (demoSession && path !== '/auth/status') {
-    throw new ApiError(503, 'Demo preview only: backend reads and actions are disabled until authentication is approved.');
-  }
   const isForm = typeof FormData !== 'undefined' && opts.body instanceof FormData;
   const res = await fetch('/api' + path, {
     method: opts.method ?? (opts.body !== undefined ? 'POST' : 'GET'),
@@ -22,9 +18,8 @@ export async function api<T = any>(
     credentials: 'same-origin',
   });
   const data = await res.json().catch(() => ({}));
-  if (res.status === 401) {
-    const demoSession = typeof window !== 'undefined' && window.localStorage.getItem('baymax-demo-session') === 'active';
-    if (!demoSession) window.location.href = '/';
+  if (res.status === 401 && !path.startsWith('/auth/')) {
+    if (typeof window !== 'undefined' && window.location.pathname !== '/') window.location.href = '/';
     throw new ApiError(401, 'Unauthorized');
   }
   if (!res.ok) throw new ApiError(res.status, (data as any)?.error ?? 'Request failed');
@@ -36,4 +31,16 @@ export interface AuthStatus {
   tourCompleted: boolean;
   authenticated?: boolean;
   dbReady?: boolean;
+}
+
+export interface ConnectionsStatus {
+  youtube: { configured: boolean; connected: boolean; channel: string | null };
+  tiktok: { configured: boolean; connected: boolean; username: string | null };
+}
+
+export interface AutopilotSettings {
+  enabled: boolean;
+  dailyPerPlatform: number;
+  times: string[];
+  brandVoice: string;
 }

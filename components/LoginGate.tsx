@@ -2,29 +2,46 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-
-const DEMO_SESSION_KEY = 'baymax-demo-session';
+import { api, ApiError, type AuthStatus } from '@/lib/api';
 
 export default function LoginGate() {
   const router = useRouter();
   const [password, setPassword] = useState('');
+  const [confirm, setConfirm] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [status, setStatus] = useState<AuthStatus | null>(null);
 
   useEffect(() => {
-    if (window.localStorage.getItem(DEMO_SESSION_KEY) === 'active') router.replace('/dashboard');
+    window.localStorage.removeItem('baymax-demo-session');
+    api<AuthStatus>('/auth/status')
+      .then((s) => {
+        if (s.authenticated) router.replace('/dashboard');
+        else setStatus(s);
+      })
+      .catch(() => setStatus({ needsSetup: false, tourCompleted: false, authenticated: false, dbReady: false }));
   }, [router]);
 
-  function submit(e: React.FormEvent) {
+  const setup = Boolean(status?.needsSetup);
+
+  async function submit(e: React.FormEvent) {
     e.preventDefault();
     setError('');
-    if (!password.trim()) {
-      setError('Enter a password to continue.');
-      return;
+    if (!password.trim()) return setError('Enter a password to continue.');
+    if (setup) {
+      if (password.length < 8) return setError('Use at least 8 characters.');
+      if (password !== confirm) return setError('Passwords do not match.');
     }
-    // Temporary local-only demo gate. This does not create a real authenticated backend session.
-    window.localStorage.setItem(DEMO_SESSION_KEY, 'active');
-    router.replace('/dashboard');
+    setBusy(true);
+    try {
+      await api(setup ? '/auth/setup' : '/auth/login', { method: 'POST', body: { password } });
+      router.replace('/dashboard');
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Could not reach Baymax. Try again.');
+    } finally {
+      setBusy(false);
+    }
   }
 
   return (
@@ -58,8 +75,8 @@ export default function LoginGate() {
         <form onSubmit={submit} className="baymax-login-card">
           <div className="baymax-login-card-top">
             <div>
-              <p className="baymax-eyebrow">WELCOME BACK</p>
-              <h2>Sign in to Baymax</h2>
+              <p className="baymax-eyebrow">{setup ? 'FIRST RUN' : 'WELCOME BACK'}</p>
+              <h2>{setup ? 'Create your master password' : 'Sign in to Baymax'}</h2>
             </div>
             <span className="baymax-lock-mark">✦</span>
           </div>
@@ -70,20 +87,36 @@ export default function LoginGate() {
               type={showPassword ? 'text' : 'password'}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Enter your password"
-              autoComplete="current-password"
+              placeholder={setup ? 'At least 8 characters' : 'Enter your password'}
+              autoComplete={setup ? 'new-password' : 'current-password'}
               autoFocus
             />
             <button type="button" onClick={() => setShowPassword((v) => !v)} aria-label={showPassword ? 'Hide password' : 'Show password'}>
               {showPassword ? 'Hide' : 'Show'}
             </button>
           </div>
+          {setup && (
+            <>
+              <label htmlFor="baymax-password-confirm">Confirm password</label>
+              <div className="baymax-password-wrap">
+                <input
+                  id="baymax-password-confirm"
+                  type={showPassword ? 'text' : 'password'}
+                  value={confirm}
+                  onChange={(e) => setConfirm(e.target.value)}
+                  placeholder="Repeat password"
+                  autoComplete="new-password"
+                />
+              </div>
+            </>
+          )}
+          {status && status.dbReady === false && (
+            <p className="baymax-login-error">Backend can't reach the database. Check SUPABASE_SERVICE_KEY on the server.</p>
+          )}
           {error && <p className="baymax-login-error">{error}</p>}
-          <button type="submit" className="baymax-login-submit">Continue <span>→</span></button>
-          <div className="baymax-demo-note">
-            <span className="baymax-demo-dot" />
-            Demo access is enabled. Enter any password to preview the workspace.
-          </div>
+          <button type="submit" className="baymax-login-submit" disabled={busy || !status}>
+            {busy ? 'Working…' : setup ? 'Create & continue' : 'Continue'} <span>→</span>
+          </button>
           <p className="baymax-login-foot">No social account is connected until you authorize it.</p>
         </form>
       </section>
