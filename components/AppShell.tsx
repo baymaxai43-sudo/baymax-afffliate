@@ -13,17 +13,7 @@ const NAV = [
   { href: '/products', label: 'Product', icon: 'box' },
 ];
 
-const PROFILE_LINKS = [
-  { href: '/settings#profile', label: 'Profile', icon: 'eye' },
-  { href: '/settings#connected-accounts', label: 'Connected Accounts', icon: 'external' },
-  { href: '/content?status=scheduled', label: 'Scheduled Tasks', icon: 'calendar' },
-  { href: '/content', label: 'Content', icon: 'sparkles' },
-  { href: '/analytics', label: 'Analytics', icon: 'chart' },
-  { href: '/settings#autopilot', label: 'Autopilot Settings', icon: 'zap' },
-  { href: '/settings#security', label: 'Security', icon: 'gear' },
-  { href: '/settings#appearance', label: 'Appearance', icon: 'eye' },
-  { href: '/about', label: 'About', icon: 'file' },
-];
+
 
 const DEMO_SESSION_KEY = 'baymax-demo-session';
 
