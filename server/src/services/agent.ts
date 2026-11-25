@@ -8,6 +8,7 @@ import { db, getSetting, setSetting } from '../db';
 import { generatePosts } from './contentGen';
 import { getAutopilot, tick, type AutopilotSettings } from './scheduler';
 import { scrapeProduct } from './products';
+import { enqueueJob, getJob, kick } from './pipeline';
 
 const SYSTEM = `You are Baymax-Shoppey, the owner's private autonomous affiliate marketing assistant.
 You manage ONE personal AliExpress affiliate store and promote its products on TikTok and YouTube on full autopilot.
@@ -112,9 +113,26 @@ const TOOLS: AITool[] = [
         dailyPerPlatform: { type: 'number' },
         times: { type: 'array', items: { type: 'string' } },
         brandVoice: { type: 'string' },
+        videosPerDay: { type: 'number', description: 'Studio videos to start per day (0-5)' },
+        reviewMode: { type: 'boolean', description: 'true = finished videos wait for owner approval' },
       },
       required: [],
     },
+  },
+  {
+    name: 'make_video',
+    description:
+      'Start the Content Studio pipeline for a product: captions (with quality check) → AI ad image → AI video. Runs in the background; result lands in Studio for review.',
+    parameters: {
+      type: 'object',
+      properties: { product_id: { type: 'string' } },
+      required: ['product_id'],
+    },
+  },
+  {
+    name: 'studio_status',
+    description: 'Check progress of a Content Studio job, or list the latest jobs when no id is given.',
+    parameters: { type: 'object', properties: { job_id: { type: 'string' } }, required: [] },
   },
   {
     name: 'run_scheduler_now',
@@ -289,9 +307,34 @@ async function executeTool(name: string, args: Record<string, unknown>): Promise
             ? (args.times as string[]).slice(0, 6)
             : current.times,
           brandVoice: typeof args.brandVoice === 'string' && args.brandVoice ? args.brandVoice : current.brandVoice,
+          videosPerDay:
+            typeof args.videosPerDay === 'number' ? Math.max(0, Math.min(5, args.videosPerDay)) : current.videosPerDay,
+          reviewMode: typeof args.reviewMode === 'boolean' ? args.reviewMode : current.reviewMode,
         };
         await setSetting('autopilot', next);
         return JSON.stringify({ updated: next });
+      }
+      case 'make_video': {
+        const id = String(args.product_id ?? '');
+        const { data: p } = await db().from('products').select('id,title').eq('id', id).maybeSingle();
+        if (!p) return JSON.stringify({ error: 'product not found' });
+        const autopilot = await getAutopilot();
+        const job = await enqueueJob({ productId: id, brandVoice: autopilot.brandVoice, reviewMode: true });
+        kick();
+        return JSON.stringify({ started: true, job_id: job.id, product: p.title, note: 'Open Studio to watch progress and approve.' });
+      }
+      case 'studio_status': {
+        if (args.job_id) {
+          const j = await getJob(String(args.job_id));
+          if (!j) return JSON.stringify({ error: 'job not found' });
+          return JSON.stringify({ id: j.id, status: j.status, step: j.step, quality: j.quality, error: j.error, video_url: j.video_url });
+        }
+        const { data } = await db()
+          .from('pipeline_jobs')
+          .select('id,status,step,error,created_at,products:product_id(title)')
+          .order('created_at', { ascending: false })
+          .limit(10);
+        return JSON.stringify({ jobs: data ?? [] });
       }
       case 'run_scheduler_now': {
         const result = await tick();

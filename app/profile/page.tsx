@@ -10,7 +10,8 @@ import { Icon } from '@/components/icons';
 const groups = [
   [
     { title: 'Profile', href: '/settings/profile', icon: 'user' },
-    { title: 'Scheduled Tasks', href: '/content?status=scheduled', icon: 'clock' },
+    { title: 'Studio', href: '/studio', icon: 'sparkles' },
+      { title: 'Scheduled Tasks', href: '/content?status=scheduled', icon: 'clock' },
     { title: 'Connected Accounts', href: '/connected-accounts', icon: 'link' },
     { title: 'Wallet', href: '/analytics', icon: 'wallet' },
   ],

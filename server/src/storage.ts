@@ -121,3 +121,21 @@ export async function readLocalAttachment(name: string): Promise<{ buffer: Buffe
     return null;
   }
 }
+
+/** Upload any media buffer (product photos, generated images/videos) to public storage. */
+export async function saveMedia(file: { filename: string; mimetype: string; buffer: Buffer }): Promise<SavedAttachment> {
+  return saveAttachment({ ...file, filename: `media-${file.filename}` });
+}
+
+/**
+ * Copy a remote file (e.g. a generated image/video URL that may expire) into our own storage.
+ * Returns a permanent public URL. In LOCAL_STORE mode returns a /chat/files path.
+ */
+export async function mirrorRemote(url: string, filename: string, maxBytes = 200 * 1024 * 1024): Promise<SavedAttachment> {
+  const res = await fetch(url, { signal: AbortSignal.timeout(180_000) });
+  if (!res.ok) throw new Error(`download failed (${res.status})`);
+  const buffer = Buffer.from(await res.arrayBuffer());
+  if (buffer.length > maxBytes) throw new Error('downloaded file too large');
+  const mimetype = res.headers.get('content-type')?.split(';')[0] || 'application/octet-stream';
+  return saveMedia({ filename, mimetype, buffer });
+}

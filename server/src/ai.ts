@@ -1,5 +1,5 @@
 /**
- * Unified AI gateway: Gemini (primary) → Groq (fallback) → explicit error.
+ * Unified AI gateway: Groq (primary, AI_PRIMARY) → Gemini (fallback) → explicit error.
  * Plain REST calls — no vendor SDKs.
  */
 import { config } from './config';
@@ -36,11 +36,17 @@ interface ChatOptions {
 
 const GEMINI_URL = (model: string) =>
   `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`;
-const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
+const GROQ_URL = () => `${config.groqBaseUrl}/chat/completions`;
+
+function providerOrder(): ('groq' | 'gemini')[] {
+  const order: ('groq' | 'gemini')[] = config.aiPrimary === 'gemini' ? ['gemini', 'groq'] : ['groq', 'gemini'];
+  return order.filter((p) => (p === 'groq' ? config.groqApiKey : config.geminiApiKey));
+}
 
 export function aiProviderLabel(): string {
-  if (config.geminiApiKey) return `gemini (${config.geminiModel})`;
-  if (config.groqApiKey) return `groq (${config.groqModel})`;
+  const first = providerOrder()[0];
+  if (first === 'groq') return `groq (${config.groqModel})`;
+  if (first === 'gemini') return `gemini (${config.geminiModel})`;
   return 'unavailable';
 }
 
@@ -158,7 +164,7 @@ async function callGroq(opts: ChatOptions): Promise<AIResult> {
         }
       : {}),
   };
-  const res = await fetch(GROQ_URL, {
+  const res = await fetch(GROQ_URL(), {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -191,16 +197,9 @@ async function callGroq(opts: ChatOptions): Promise<AIResult> {
 
 export async function chat(opts: ChatOptions): Promise<AIResult> {
   const errors: string[] = [];
-  if (config.geminiApiKey) {
+  for (const provider of providerOrder()) {
     try {
-      return await callGemini(opts);
-    } catch (e) {
-      errors.push(String(e));
-    }
-  }
-  if (config.groqApiKey) {
-    try {
-      return await callGroq(opts);
+      return provider === 'groq' ? await callGroq(opts) : await callGemini(opts);
     } catch (e) {
       errors.push(String(e));
     }

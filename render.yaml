@@ -21,11 +21,23 @@ services:
       # Shared with Vercel so the daily cron ping (/api/cron/tick) passes auth
       - key: CRON_SECRET
         value: aeae5ec65e3df97a3d28b47e26c135c38648b8ed990f35dc
-      # AI (Gemini primary, Groq fallback)
-      - key: GEMINI_API_KEY
-        sync: false
+      # AI: Groq thinks (primary), Gemini free text is the fallback
+      - key: AI_PRIMARY
+        value: groq
       - key: GROQ_API_KEY
         sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GEMINI_MODEL
+        value: gemini-3.5-flash-lite
+      # Agnes AI: ad image + image-to-video (free models)
+      - key: AGNES_API_KEY
+        sync: false
+      # Posting times + 12-min keep-alive (Render sets RENDER_EXTERNAL_URL itself)
+      - key: TZ
+        value: Africa/Lagos
+      - key: KEEPALIVE_MINUTES
+        value: "12"
       # Social OAuth (optional until you connect accounts)
       - key: YOUTUBE_CLIENT_ID
         sync: false
