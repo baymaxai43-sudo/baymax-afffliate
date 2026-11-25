@@ -115,8 +115,14 @@ function SettingsBody() {
         </div>
       )}
 
+      <div id="profile" className="rounded-3xl border border-white/70 bg-white/35 p-4 md:p-5">
+        <p className="mb-1 text-[10px] font-extrabold uppercase tracking-[.16em] text-sky-deep">Account</p>
+        <h2 className="text-lg font-extrabold text-navy">Your Baymax workspace</h2>
+        <p className="mt-1 text-xs text-navy/55">Manage connected channels, automation preferences and workspace security here.</p>
+      </div>
+
       {/* Autopilot */}
-      <Card className="p-5">
+      <div id="autopilot"><Card className="p-5">
         <div className="flex items-center gap-3 mb-4">
           <div className="w-10 h-10 rounded-xl bg-sky-deep/10 text-sky-deep flex items-center justify-center">
             <Icon name="zap" />
@@ -187,10 +193,10 @@ function SettingsBody() {
             </div>
           </div>
         )}
-      </Card>
+      </Card></div>
 
       {/* Social connections */}
-      <Card className="p-5">
+      <div id="connected-accounts"><Card className="p-5">
         <div className="flex items-center gap-3 mb-4">
           <div className="w-10 h-10 rounded-xl bg-sky-deep/10 text-sky-deep flex items-center justify-center">
             <Icon name="external" />
@@ -251,10 +257,28 @@ function SettingsBody() {
             </div>
           ))}
         </div>
-        <p className="text-[11px] text-navy/40 mt-3">
-          Without a connection, Baymax still writes &amp; schedules everything — publishing waits until you connect.
-        </p>
-      </Card>
+        <div className="mt-4 border-t border-navy/5 pt-4">
+          <p className="mb-3 text-[10px] font-extrabold uppercase tracking-[.14em] text-navy/40">More affiliate channels</p>
+          <div className="grid gap-2 sm:grid-cols-2">
+            {[
+              { name: "Instagram", mark: "◎" }, { name: "Facebook", mark: "f" },
+              { name: "Pinterest", mark: "P" }, { name: "X", mark: "𝕏" },
+              { name: "Threads", mark: "@" }, { name: "Telegram", mark: "➤" },
+              { name: "Reddit", mark: "r/" }, { name: "Snapchat", mark: "👻" },
+              { name: "LinkedIn", mark: "in" }, { name: "WhatsApp", mark: "◉" },
+              { name: "Twitch", mark: "▣" }, { name: "Medium", mark: "M" },
+            ].map((platform) => (
+              <div key={platform.name} className="flex items-center gap-3 rounded-xl border border-navy/5 bg-white/65 px-3.5 py-3">
+                <span className="grid h-8 w-8 place-items-center rounded-xl bg-sky-deep/10 text-sm font-black text-sky-deep">{platform.mark}</span>
+                <span className="min-w-0 flex-1 text-xs font-bold text-navy">{platform.name}</span>
+                <Badge tone="gray">Not connected</Badge>
+                <span className="text-[9px] font-bold text-navy/30">LATER</span>
+              </div>
+            ))}
+          </div>
+        </div>
+        <p className="mt-3 text-[11px] text-navy/40">A channel remains disconnected until you explicitly authorize its official connection. YouTube and TikTok use existing OAuth flows; additional channels are listed but not yet integrated.</p>
+      </Card></div>
 
       {/* AI engine */}
       <Card className="p-5">
@@ -293,7 +317,7 @@ function SettingsBody() {
       </Card>
 
       {/* Password */}
-      <Card className="p-5">
+      <div id="security"><Card className="p-5">
         <div className="flex items-center gap-3 mb-4">
           <div className="w-10 h-10 rounded-xl bg-sky-deep/10 text-sky-deep flex items-center justify-center">
             <Icon name="gear" />
@@ -314,7 +338,12 @@ function SettingsBody() {
             Update password
           </Button>
         </div>
-      </Card>
+      </Card></div>
+      <div id="appearance" className="rounded-3xl border border-white/70 bg-white/45 p-5">
+        <h2 className="font-bold text-navy">Appearance</h2>
+        <p className="mt-1 text-xs text-navy/50">Baymax currently uses the atmospheric blue and translucent glass theme for this interface preview.</p>
+        <Badge tone="blue">Blue glass theme active</Badge>
+      </div>
     </div>
   );
 }

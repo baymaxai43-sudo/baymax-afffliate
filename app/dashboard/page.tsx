@@ -55,6 +55,16 @@ function DashboardBody() {
 
   return (
     <div className="space-y-6">
+      <div className="flex items-center gap-4 rounded-3xl border border-white/70 bg-white/35 px-5 py-4 backdrop-blur-xl">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/baymax-icon.png" alt="" className="h-12 w-12 rounded-2xl bg-white/80 p-1 shadow-sm" />
+        <div>
+          <p className="text-[10px] font-extrabold uppercase tracking-[.16em] text-sky-deep">Baymax is ready</p>
+          <h2 className="mt-1 text-lg font-extrabold tracking-tight text-navy">What are we growing today?</h2>
+          <p className="mt-0.5 text-xs text-navy/50">Your products, campaigns and affiliate performance in one workspace.</p>
+        </div>
+      </div>
+
       {/* autopilot banner */}
       <div className="rounded-2xl bg-gradient-to-r from-sky-deep to-sky p-5 md:p-6 text-white shadow-lg shadow-sky/25 flex flex-wrap items-center gap-4">
         <div className="w-11 h-11 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
@@ -84,6 +94,37 @@ function DashboardBody() {
           </Link>
         </div>
       </div>
+
+      {/* Action cards */}
+      <section className="space-y-3">
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm font-extrabold tracking-tight text-navy">Quick actions</h2>
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-navy/35">Your next steps</span>
+        </div>
+        <div className="grid gap-3 md:grid-cols-3">
+          <Link href="/products">
+            <Card className="group flex h-full items-center gap-3 p-4 transition hover:-translate-y-0.5 hover:shadow-lg">
+              <span className="grid h-10 w-10 place-items-center rounded-2xl bg-sky-deep/10 text-sky-deep"><Icon name="box" /></span>
+              <span className="min-w-0 flex-1"><strong className="block text-xs text-navy">Manage products</strong><span className="mt-1 block text-[10px] text-navy/45">Add or organize affiliate offers</span></span>
+              <span className="text-navy/30 transition group-hover:translate-x-1">→</span>
+            </Card>
+          </Link>
+          <Link href="/settings#connected-accounts">
+            <Card className="group flex h-full items-center gap-3 p-4 transition hover:-translate-y-0.5 hover:shadow-lg">
+              <span className="grid h-10 w-10 place-items-center rounded-2xl bg-indigo-500/10 text-indigo-600"><Icon name="external" /></span>
+              <span className="min-w-0 flex-1"><strong className="block text-xs text-navy">Connect a channel</strong><span className="mt-1 block text-[10px] text-navy/45">Authorize where Baymax can publish</span></span>
+              <span className="text-navy/30 transition group-hover:translate-x-1">→</span>
+            </Card>
+          </Link>
+          <Link href="/content?status=scheduled">
+            <Card className="group flex h-full items-center gap-3 p-4 transition hover:-translate-y-0.5 hover:shadow-lg">
+              <span className="grid h-10 w-10 place-items-center rounded-2xl bg-amber-500/10 text-amber-600"><Icon name="calendar" /></span>
+              <span className="min-w-0 flex-1"><strong className="block text-xs text-navy">Review schedule</strong><span className="mt-1 block text-[10px] text-navy/45">Check upcoming promotional posts</span></span>
+              <span className="text-navy/30 transition group-hover:translate-x-1">→</span>
+            </Card>
+          </Link>
+        </div>
+      </section>
 
       {/* stat cards */}
       <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">

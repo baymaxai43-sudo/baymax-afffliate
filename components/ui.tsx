@@ -44,7 +44,7 @@ export function Button({
 
 export function Card({ children, className = '' }: { children: ReactNode; className?: string }) {
   return (
-    <div className={`bg-white rounded-2xl border border-navy/5 shadow-[0_1px_3px_rgba(11,22,51,.06)] ${className}`}>
+    <div className={`bg-white/65 backdrop-blur-xl rounded-3xl border border-white/80 shadow-[0_12px_36px_rgba(36,75,125,.08),inset_0_1px_0_rgba(255,255,255,.85)] ${className}`}>
       {children}
     </div>
   );

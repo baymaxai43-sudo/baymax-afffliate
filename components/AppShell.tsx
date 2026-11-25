@@ -8,21 +8,38 @@ import { Icon } from './icons';
 import { Tour } from './Tour';
 
 const NAV = [
-  { href: '/dashboard', label: 'Dashboard', icon: 'dashboard' },
+  { href: '/dashboard', label: 'Home', icon: 'dashboard' },
   { href: '/chat', label: 'Chat', icon: 'chat' },
-  { href: '/products', label: 'Products', icon: 'box' },
+  { href: '/products', label: 'Product', icon: 'box' },
+];
+
+const PROFILE_LINKS = [
+  { href: '/settings#profile', label: 'Profile', icon: 'eye' },
+  { href: '/settings#connected-accounts', label: 'Connected Accounts', icon: 'external' },
+  { href: '/content?status=scheduled', label: 'Scheduled Tasks', icon: 'calendar' },
   { href: '/content', label: 'Content', icon: 'sparkles' },
   { href: '/analytics', label: 'Analytics', icon: 'chart' },
-  { href: '/settings', label: 'Settings', icon: 'gear' },
+  { href: '/settings#autopilot', label: 'Autopilot Settings', icon: 'zap' },
+  { href: '/settings#security', label: 'Security', icon: 'gear' },
+  { href: '/settings#appearance', label: 'Appearance', icon: 'eye' },
+  { href: '/about', label: 'About', icon: 'file' },
 ];
+
+const DEMO_SESSION_KEY = 'baymax-demo-session';
 
 export function AppShell({ title, children, actions }: { title: string; children: ReactNode; actions?: ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const [status, setStatus] = useState<AuthStatus | null>(null);
-  const [mobileOpen, setMobileOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [demoMode, setDemoMode] = useState(false);
 
   useEffect(() => {
+    if (window.localStorage.getItem(DEMO_SESSION_KEY) === 'active') {
+      setDemoMode(true);
+      setStatus({ needsSetup: false, tourCompleted: true, authenticated: true });
+      return;
+    }
     api<AuthStatus>('/auth/status')
       .then((s) => {
         setStatus(s);
@@ -31,112 +48,125 @@ export function AppShell({ title, children, actions }: { title: string; children
       .catch(() => router.replace('/'));
   }, [router]);
 
+  useEffect(() => {
+    setProfileOpen(false);
+  }, [pathname]);
+
   if (!status?.authenticated) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-cloud">
         <div className="flex flex-col items-center gap-3">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/baymax-icon.png" alt="" className="w-12 h-12 animate-pulse bg-white rounded-xl" />
-          <p className="text-sm text-navy/50 font-medium">Opening your store…</p>
+          <p className="text-sm text-navy/50 font-medium">Opening Baymax…</p>
         </div>
       </div>
     );
   }
 
   async function logout() {
-    await api('/auth/logout', { method: 'POST' });
+    if (demoMode) {
+      window.localStorage.removeItem(DEMO_SESSION_KEY);
+    } else {
+      await api('/auth/logout', { method: 'POST' }).catch(() => {});
+    }
     router.replace('/');
   }
 
-  const nav = (
-    <nav className="flex-1 px-3 py-4 space-y-1">
-      {NAV.map((item) => {
-        const active = (pathname ?? '').startsWith(item.href);
-        return (
-          <Link
-            key={item.href}
-            href={item.href}
-            onClick={() => setMobileOpen(false)}
-            className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all ${
-              active
-                ? 'bg-sky-deep text-white shadow-lg shadow-sky-deep/25'
-                : 'text-navy/60 hover:bg-navy/5 hover:text-navy'
-            }`}
-          >
-            <Icon name={item.icon} className="w-[18px] h-[18px]" />
-            {item.label}
-          </Link>
-        );
-      })}
-    </nav>
-  );
-
-  const brand = (
-    <div className="px-5 pt-5 pb-3 flex items-center gap-2.5">
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src="/baymax-icon.png" alt="Baymax-Shoppey" className="w-9 h-9 rounded-xl shadow-md bg-white" />
-      <div className="leading-tight">
-        <div className="font-extrabold text-navy text-[15px] tracking-tight">
-          baymax<span className="text-sky-deep">-shoppey</span>
-        </div>
-        <div className="text-[10px] font-semibold text-navy/40 uppercase tracking-wider">affiliate copilot</div>
-      </div>
-    </div>
-  );
-
-  const footer = (
-    <div className="px-3 pb-4">
-      <button
-        onClick={logout}
-        className="flex items-center gap-3 w-full px-3.5 py-2.5 rounded-xl text-sm font-semibold text-navy/50 hover:bg-danger/5 hover:text-danger transition"
-      >
-        <Icon name="logout" className="w-[18px] h-[18px]" />
-        Sign out
-      </button>
-    </div>
-  );
+  const activeNav = (href: string) => pathname === href || (href === '/dashboard' && pathname === '/');
 
   return (
-    <div className="min-h-screen bg-cloud flex">
-      {/* desktop sidebar */}
-      <aside className="hidden lg:flex w-60 flex-col bg-white border-r border-navy/5 fixed inset-y-0">
-        {brand}
-        {nav}
-        <div className="mt-auto">{footer}</div>
-      </aside>
-
-      {/* mobile drawer */}
-      {mobileOpen && (
-        <div className="lg:hidden fixed inset-0 z-40">
-          <div className="absolute inset-0 bg-navy/40" onClick={() => setMobileOpen(false)} />
-          <aside className="absolute inset-y-0 left-0 w-64 bg-white shadow-2xl flex flex-col fade-up">
-            {brand}
-            {nav}
-            <div className="mt-auto">{footer}</div>
-          </aside>
-        </div>
-      )}
-
-      <div className="flex-1 lg:pl-60 min-w-0">
-        <header className="sticky top-0 z-30 bg-cloud/85 backdrop-blur border-b border-navy/5">
-          <div className="flex items-center gap-3 px-4 md:px-8 h-16">
-            <button
-              className="lg:hidden p-2 -ml-2 text-navy"
-              onClick={() => setMobileOpen(true)}
-              aria-label="Open menu"
-            >
-              <svg viewBox="0 0 24 24" className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M4 7h16M4 12h16M4 17h16" strokeLinecap="round" />
-              </svg>
-            </button>
-            <h1 className="text-lg font-extrabold text-navy tracking-tight">{title}</h1>
-            <div className="ml-auto flex items-center gap-2">{actions}</div>
-          </div>
-        </header>
-        <main className="px-4 md:px-8 py-6 max-w-6xl">{children}</main>
+    <div className="baymax-app min-h-screen text-navy">
+      <div className="baymax-atmosphere" aria-hidden="true">
+        <span className="baymax-cloud cloud-one" />
+        <span className="baymax-cloud cloud-two" />
+        <span className="baymax-cloud cloud-three" />
+        <span className="baymax-glow glow-one" />
+        <span className="baymax-glow glow-two" />
       </div>
 
-      {!status.tourCompleted && <Tour onDone={() => setStatus((s) => s && { ...s, tourCompleted: true })} />}
+      <header className="baymax-topbar">
+        <Link href="/dashboard" className="baymax-brand" aria-label="Baymax home">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/baymax-icon.png" alt="" className="baymax-brand-icon" />
+          <span>baymax<span className="baymax-brand-soft">.ai</span></span>
+        </Link>
+
+        <nav className="baymax-nav baymax-nav-desktop" aria-label="Primary navigation">
+          {NAV.map((item) => (
+            <Link key={item.href} href={item.href} className={`baymax-nav-link ${activeNav(item.href) ? 'is-active' : ''}`}>
+              <Icon name={item.icon} className="w-[17px] h-[17px]" />
+              <span>{item.label}</span>
+            </Link>
+          ))}
+        </nav>
+
+        <div className="baymax-top-actions">
+          {demoMode && <span className="baymax-demo-pill">DEMO MODE</span>}
+          {actions}
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setProfileOpen((v) => !v)}
+              className={`baymax-avatar-button ${profileOpen ? 'is-open' : ''}`}
+              aria-label="Open profile menu"
+              aria-expanded={profileOpen}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/baymax-icon.png" alt="" />
+              <span className="baymax-online-dot" />
+            </button>
+            {profileOpen && (
+              <>
+                <button className="fixed inset-0 z-40 cursor-default" aria-label="Close profile menu" onClick={() => setProfileOpen(false)} />
+                <div className="baymax-profile-menu">
+                  <div className="baymax-profile-heading">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src="/baymax-icon.png" alt="" />
+                    <div>
+                      <strong>Baymax account</strong>
+                      <span>{demoMode ? 'Demo session' : 'Private workspace'}</span>
+                    </div>
+                  </div>
+                  <div className="baymax-profile-links">
+                    {PROFILE_LINKS.map((item) => (
+                      <Link href={item.href} key={item.label} className="baymax-profile-link">
+                        <Icon name={item.icon} className="w-4 h-4" />
+                        <span>{item.label}</span>
+                      </Link>
+                    ))}
+                  </div>
+                  <button type="button" onClick={logout} className="baymax-signout">
+                    <Icon name="logout" className="w-4 h-4" />
+                    Sign Out
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      </header>
+
+      <main className="baymax-main">
+        <div className="baymax-page-heading">
+          <div>
+            <p className="baymax-eyebrow">YOUR AFFILIATE WORKSPACE</p>
+            <h1>{title === 'Dashboard' ? 'Home' : title === 'Products' ? 'Product' : title}</h1>
+          </div>
+        </div>
+        {children}
+      </main>
+
+      <nav className="baymax-nav baymax-nav-mobile" aria-label="Primary navigation">
+        {NAV.map((item) => (
+          <Link key={item.href} href={item.href} className={`baymax-nav-link ${activeNav(item.href) ? 'is-active' : ''}`}>
+            <Icon name={item.icon} className="w-[18px] h-[18px]" />
+            <span>{item.label}</span>
+          </Link>
+        ))}
+      </nav>
+
+      {!demoMode && !status.tourCompleted && <Tour onDone={() => setStatus((s) => s && { ...s, tourCompleted: true })} />}
     </div>
   );
 }
