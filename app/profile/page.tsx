@@ -10,11 +10,11 @@ import { Card } from '@/components/ui';
 const sections = [
   { title: 'Profile', description: 'Your personal details and account information', href: '/settings#profile', icon: 'eye' },
   { title: 'Scheduled Tasks', description: 'Review and manage scheduled activity', href: '/content?status=scheduled', icon: 'calendar' },
-  { title: 'Connected Accounts', description: 'Manage social and affiliate connections', href: '/settings#connected-accounts', icon: 'external' },
+  { title: 'Connected Accounts', description: 'Manage social and affiliate connections', href: '/connected-accounts', icon: 'external' },
   { title: 'Wallet', description: 'Affiliate earnings and payment information', href: '/analytics', icon: 'chart' },
   { title: 'Security', description: 'Password and account protection', href: '/settings#security', icon: 'gear' },
   { title: 'System Preferences', description: 'Theme and workspace preferences', href: '/settings#appearance', icon: 'gear' },
-  { title: 'Autopilot Settings', description: 'Control how Baymax works for you', href: '/settings#autopilot', icon: 'zap' },
+  { title: 'Autopilot Settings', description: 'Control how Baymax works for you', href: '/connected-accounts', icon: 'zap' },
   { title: 'Content', description: 'Your generated posts and publishing queue', href: '/content', icon: 'file' },
   { title: 'Analytics', description: 'Clicks, sales and performance insights', href: '/analytics', icon: 'chart' },
   { title: 'About', description: 'Learn more about Baymax', href: '/about', icon: 'eye' },
