@@ -62,9 +62,8 @@ export function AppShell({ title, children, actions }: { title: string; children
       </div>
 
       <header className="baymax-topbar">
-        <Link href="/dashboard" className="bx-home-btn" aria-label="Baymax home">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/baymax-icon.png" alt="" />
+        <Link href="/dashboard" className="bx-home-btn" aria-label="Home" title="Home">
+          <Icon name="home" className="w-5 h-5" />
         </Link>
         <nav className="baymax-nav baymax-nav-desktop" aria-label="Primary navigation">
           {NAV.map((item) => (

@@ -1072,3 +1072,13 @@ body { background: var(--bx-bg); color: var(--bx-text); font-family: var(--font-
   .baymax-nav-desktop .baymax-nav-link { padding: 0 12px; font-size: 13px; height: 42px; }
   .chat-assistant-bubble, .bubble-user { font-size: 14.5px !important; }
 }
+
+
+/* Top-left: dark circular Home button on laptop, nothing on mobile. */
+.bx-home-btn {
+  width: 48px; height: 48px; background: #161616; color: #fff;
+  box-shadow: 0 0 0 1px rgba(255,255,255,.08), 0 8px 22px rgba(0,0,0,.35);
+}
+.bx-home-btn:hover { background: #222; box-shadow: 0 0 0 1px rgba(255,255,255,.16), 0 10px 26px rgba(0,0,0,.4); }
+.bx-home-btn svg { width: 21px; height: 21px; stroke-width: 2; }
+@media (max-width: 900px) { .bx-home-btn { display: none; } }
