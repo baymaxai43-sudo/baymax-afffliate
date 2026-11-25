@@ -2,13 +2,12 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { api, type AuthStatus } from '@/lib/api';
+import { api } from '@/lib/api';
 
 const DEMO_SESSION_KEY = 'baymax-demo-session';
 
 export default function LoginGate() {
   const router = useRouter();
-  const [status, setStatus] = useState<AuthStatus | null>(null);
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
@@ -19,11 +18,10 @@ export default function LoginGate() {
       return;
     }
     api<AuthStatus>('/auth/status')
-      .then((s) => {
-        setStatus(s);
+      .then((s: { authenticated?: boolean }) => {
         if (s.authenticated) router.replace('/dashboard');
       })
-      .catch(() => setStatus({ needsSetup: false, tourCompleted: false, authenticated: false, dbReady: false }));
+      .catch(() => {});
   }, [router]);
 
   function submit(e: React.FormEvent) {
