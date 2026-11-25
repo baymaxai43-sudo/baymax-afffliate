@@ -14,7 +14,7 @@ const NAV = [
 ];
 
 
-export function AppShell({ title, children, actions }: { title: string; children: ReactNode; actions?: ReactNode }) {
+export function AppShell({ title, children, actions, back }: { title: string; children: ReactNode; actions?: ReactNode; back?: string }) {
   const router = useRouter();
   const pathname = usePathname();
   const [status, setStatus] = useState<AuthStatus | null>(null);
@@ -47,6 +47,12 @@ export function AppShell({ title, children, actions }: { title: string; children
   async function logout() {
     await api('/auth/logout', { method: 'POST' }).catch(() => {});
     router.replace('/');
+  }
+
+  function goBack() {
+    // Return to wherever the user came from; fall back to the given page.
+    if (typeof window !== 'undefined' && window.history.length > 1) router.back();
+    else router.push(back || '/profile');
   }
 
   const activeNav = (href: string) => pathname === href || (href === '/dashboard' && pathname === '/');
@@ -91,10 +97,17 @@ export function AppShell({ title, children, actions }: { title: string; children
       </header>
 
       <main className={`baymax-main ${title === 'Chat' ? 'baymax-main-chat' : ''}`}>
-        {title !== 'Chat' && title !== 'Profile' && title !== 'Dashboard' && <div className="baymax-page-heading">
+        {title !== 'Chat' && pathname !== '/profile' && title !== 'Dashboard' && <div className="baymax-page-heading">
+          <div className="bx-heading-row">
+            {back && (
+              <button type="button" onClick={goBack} className="bx-back-btn" aria-label="Go back" title="Back">
+                <Icon name="chevron-left" className="w-5 h-5" />
+              </button>
+            )}
           <div>
             <p className="baymax-eyebrow">YOUR AFFILIATE WORKSPACE</p>
             <h1>{title === 'Dashboard' ? 'Home' : title === 'Products' ? 'Product' : title}</h1>
+          </div>
           </div>
         </div>}
         {children}

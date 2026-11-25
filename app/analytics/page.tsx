@@ -22,7 +22,7 @@ interface Point {
 
 export default function AnalyticsPage() {
   return (
-    <AppShell title="Analytics">
+    <AppShell title="Analytics" back="/profile">
       <AnalyticsBody />
     </AppShell>
   );
