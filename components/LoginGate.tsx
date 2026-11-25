@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { api } from '@/lib/api';
 
 const DEMO_SESSION_KEY = 'baymax-demo-session';
 
@@ -13,15 +12,7 @@ export default function LoginGate() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    if (window.localStorage.getItem(DEMO_SESSION_KEY) === 'active') {
-      router.replace('/dashboard');
-      return;
-    }
-    api<AuthStatus>('/auth/status')
-      .then((s: { authenticated?: boolean }) => {
-        if (s.authenticated) router.replace('/dashboard');
-      })
-      .catch(() => {});
+    if (window.localStorage.getItem(DEMO_SESSION_KEY) === 'active') router.replace('/dashboard');
   }, [router]);
 
   function submit(e: React.FormEvent) {
