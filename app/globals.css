@@ -344,3 +344,26 @@ body {
   .baymax-login-card { padding:23px; }
   .baymax-login-header { padding:17px 18px; }
 }
+
+
+/* Top navigation and edge-to-edge chat refinements */
+@media (max-width: 900px) {
+  .baymax-topbar { min-height: auto; padding: 10px 14px 12px; flex-wrap: wrap; row-gap: 10px; }
+  .baymax-nav-desktop { display: flex; position: static; order: 3; transform: none; width: 100%; justify-content: center; }
+  .baymax-nav-desktop .baymax-nav-link { padding: 8px 14px; font-size: 12px; }
+  .baymax-nav-mobile { display: none !important; }
+  .baymax-top-actions { margin-left: auto; }
+  .baymax-main { padding-bottom: 24px; }
+}
+@media (max-width: 420px) {
+  .baymax-nav-desktop { gap: 3px; padding: 4px; }
+  .baymax-nav-desktop .baymax-nav-link { gap: 5px; padding: 8px 10px; font-size: 11px; }
+  .baymax-nav-desktop .baymax-nav-link svg { width: 15px; height: 15px; }
+}
+.baymax-main-chat { width: 100%; max-width: none; height: calc(100dvh - 86px); min-height: 420px; margin: 0; padding: 0; }
+.baymax-main-chat > .baymax-page-heading { display: none; }
+.baymax-main-chat > div { width: 100%; max-width: none; height: 100%; margin: 0; }
+.baymax-main-chat .glass { border-radius: 0; border-left: 0; border-right: 0; box-shadow: none; }
+@media (max-width: 900px) {
+  .baymax-main-chat { height: calc(100dvh - 112px); min-height: 420px; }
+}
