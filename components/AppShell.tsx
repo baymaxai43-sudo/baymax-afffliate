@@ -67,7 +67,7 @@ export function AppShell({ title, children, actions }: { title: string; children
         </Link>
         <nav className="baymax-nav baymax-nav-desktop" aria-label="Primary navigation">
           {NAV.map((item) => (
-            <Link key={item.href} href={item.href} className={`baymax-nav-link ${activeNav(item.href) ? 'is-active' : ''}`}>
+            <Link key={item.href} href={item.href} className={`baymax-nav-link ${item.href === '/dashboard' ? 'bx-nav-home' : ''} ${activeNav(item.href) ? 'is-active' : ''}`}>
               <Icon name={item.icon} className="w-[17px] h-[17px]" />
               <span>{item.label}</span>
             </Link>

@@ -1082,3 +1082,6 @@ body { background: var(--bx-bg); color: var(--bx-text); font-family: var(--font-
 .bx-home-btn:hover { background: #222; box-shadow: 0 0 0 1px rgba(255,255,255,.16), 0 10px 26px rgba(0,0,0,.4); }
 .bx-home-btn svg { width: 21px; height: 21px; stroke-width: 2; }
 @media (max-width: 900px) { .bx-home-btn { display: none; } }
+
+/* Laptop: the round Home button replaces the Home pill item. Mobile keeps it. */
+@media (min-width: 901px) { .baymax-nav-desktop .bx-nav-home { display: none; } }
