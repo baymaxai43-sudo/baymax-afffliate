@@ -99,7 +99,7 @@ function ConnectedAccountsBody() {
   return (
     <div className="mx-auto w-full max-w-5xl space-y-5">
       {notice && (
-        <div className={`rounded-xl px-4 py-3 text-sm font-semibold ${notice.tone === 'green' ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'}`}>
+        <div className={`rounded-xl px-4 py-3 text-sm font-semibold ${notice.tone === 'green' ? 'bx-ok' : 'bx-err'}`}>
           {notice.text}
         </div>
       )}
@@ -130,7 +130,7 @@ function ConnectedAccountsBody() {
             const configured = Boolean(st?.configured);
             const badge = !live ? 'Coming soon' : !conn ? 'Loading' : isConnected ? (st?.label ? `Connected · ${st.label}` : 'Connected') : configured ? 'Disconnected' : 'Not configured';
             return (
-              <div key={platform.name} className={`flex min-w-0 items-center gap-3 rounded-2xl border border-navy/5 bg-white/70 px-3 py-3 ${live ? '' : 'opacity-60'}`}>
+              <div key={platform.name} className={`flex min-w-0 items-center gap-3 rounded-2xl bx-row px-3 py-3 ${live ? '' : 'opacity-60'}`}>
                 <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-sky-deep/10 text-sm font-black text-sky-deep">
                   {platform.mark}
                 </span>
@@ -180,7 +180,7 @@ function ConnectedAccountsBody() {
             onClick={toggleAutopilot}
             className={`relative h-8 w-14 shrink-0 rounded-full transition-colors ${enabled ? 'bg-success' : 'bg-navy/20'}`}
           >
-            <span className={`absolute top-1 h-6 w-6 rounded-full bg-white shadow transition-all ${enabled ? 'left-7' : 'left-1'}`} />
+            <span className={`absolute top-1 h-6 w-6 rounded-full bg-[#fff] shadow transition-all ${enabled ? 'left-7' : 'left-1'}`} />
           </button>
         </div>
         <div className="mt-4 flex flex-wrap items-center gap-2">

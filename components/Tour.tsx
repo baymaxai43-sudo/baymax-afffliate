@@ -60,7 +60,7 @@ export function Tour({ onDone }: { onDone?: () => void }) {
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-navy/50 backdrop-blur-sm">
       <div
-        className={`bg-white rounded-3xl shadow-2xl w-full max-w-md p-7 text-center transition-all ${
+        className={`bx-modal rounded-3xl shadow-2xl w-full max-w-md p-7 text-center transition-all ${
           leaving ? 'opacity-0 scale-95' : 'fade-up'
         }`}
       >

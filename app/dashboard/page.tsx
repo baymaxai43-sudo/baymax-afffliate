@@ -45,8 +45,8 @@ function DashboardBody() {
   return (
     <div className="space-y-6">
       {/* autopilot banner */}
-      <div className="rounded-2xl bg-gradient-to-r from-sky-deep to-sky p-5 md:p-6 text-white shadow-lg shadow-sky/25 flex flex-wrap items-center gap-4">
-        <div className="w-11 h-11 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
+      <div className="bx-hero p-5 md:p-6 flex flex-wrap items-center gap-4">
+        <div className="bx-hero-icon w-11 h-11 rounded-xl flex items-center justify-center shrink-0">
           <Icon name="zap" className="w-6 h-6" />
         </div>
         <div className="min-w-0">
@@ -56,7 +56,7 @@ function DashboardBody() {
               {autopilot === null ? '…' : autopilot.enabled ? 'ON' : 'PAUSED'}
             </Badge>
           </div>
-          <p className="text-white/85 text-sm mt-0.5">
+          <p className="text-navy/70 text-sm mt-0.5">
             {autopilot?.enabled
               ? `Generating & scheduling up to ${autopilot.dailyPerPlatform} post(s)/platform/day to TikTok + YouTube.`
               : 'Turn autopilot on to let Baymax post for you.'}
@@ -64,12 +64,12 @@ function DashboardBody() {
         </div>
         <div className="ml-auto flex gap-2">
           <Link href="/content">
-            <Button variant="ghost" className="bg-white/20 text-white hover:bg-white/30 shadow-none">
+            <Button variant="ghost">
               Content queue
             </Button>
           </Link>
           <Link href="/settings">
-            <Button variant="ghost" className="bg-white text-sky-deep hover:bg-white/90 shadow-none">Settings</Button>
+            <Button variant="primary">Settings</Button>
           </Link>
         </div>
       </div>
@@ -88,7 +88,7 @@ function DashboardBody() {
               <span className="text-navy/30 transition group-hover:translate-x-1">→</span>
             </Card>
           </Link>
-          <Link href="/settings#connected-accounts">
+          <Link href="/connected-accounts">
             <Card className="group flex h-full items-center gap-3 p-4 transition hover:-translate-y-0.5 hover:shadow-lg">
               <span className="grid h-10 w-10 place-items-center rounded-2xl bg-indigo-500/10 text-indigo-600"><Icon name="external" /></span>
               <span className="min-w-0 flex-1"><strong className="block text-xs text-navy">Connect a channel</strong><span className="mt-1 block text-[10px] text-navy/45">Authorize where Baymax can publish</span></span>

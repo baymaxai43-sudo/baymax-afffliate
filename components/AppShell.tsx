@@ -18,6 +18,7 @@ export function AppShell({ title, children, actions }: { title: string; children
   const router = useRouter();
   const pathname = usePathname();
   const [status, setStatus] = useState<AuthStatus | null>(null);
+  const [live, setLive] = useState<boolean | null>(null);
 
   useEffect(() => {
     // Clear any leftover flag from the old local-only demo gate
@@ -26,17 +27,18 @@ export function AppShell({ title, children, actions }: { title: string; children
       .then((s) => {
         setStatus(s);
         if (!s.authenticated) router.replace('/');
+        else api<{ autopilot: { enabled: boolean } }>('/settings').then((r) => setLive(r.autopilot.enabled)).catch(() => {});
       })
       .catch(() => router.replace('/'));
   }, [router]);
 
   if (!status?.authenticated) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-cloud">
+      <div className="bx-boot min-h-screen flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/baymax-icon.png" alt="" className="w-12 h-12 animate-pulse bg-white rounded-xl" />
-          <p className="text-sm text-navy/50 font-medium">Opening Baymax…</p>
+          <img src="/baymax-icon.png" alt="" className="w-12 h-12 animate-pulse rounded-full" />
+          <p className="text-sm font-medium">Powering up Baymax…</p>
         </div>
       </div>
     );
@@ -60,6 +62,10 @@ export function AppShell({ title, children, actions }: { title: string; children
       </div>
 
       <header className="baymax-topbar">
+        <Link href="/dashboard" className="bx-home-btn" aria-label="Baymax home">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/baymax-icon.png" alt="" />
+        </Link>
         <nav className="baymax-nav baymax-nav-desktop" aria-label="Primary navigation">
           {NAV.map((item) => (
             <Link key={item.href} href={item.href} className={`baymax-nav-link ${activeNav(item.href) ? 'is-active' : ''}`}>
@@ -70,6 +76,12 @@ export function AppShell({ title, children, actions }: { title: string; children
         </nav>
 
         <div className="baymax-top-actions">
+          {live !== null && (
+            <Link href="/connected-accounts" className={`bx-live-pill ${live ? 'is-on' : ''}`} title="Autopilot status">
+              <span className="bx-live-dot" />
+              <span className="bx-live-label">{live ? 'Autopilot live' : 'Autopilot paused'}</span>
+            </Link>
+          )}
           {actions}
           <Link href="/profile" className="baymax-avatar-button" aria-label="Open profile page">
             {/* eslint-disable-next-line @next/next/no-img-element */}

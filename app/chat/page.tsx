@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { api } from '@/lib/api';
 import { AppShell } from '@/components/AppShell';
 import { Icon } from '@/components/icons';
+import { ActionCard, NotificationStack, useBriefing } from '@/components/NotificationRail';
 
 interface Attachment {
   name: string;
@@ -68,6 +69,20 @@ function ChatBody() {
   const messagesRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dragDepth = useRef(0);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const briefing = useBriefing();
+  const [sheet, setSheet] = useState(false);
+
+  /** Notification actions either prefill (ends with a space) or send straight to the agent. */
+  function runPrompt(p: string) {
+    setSheet(false);
+    if (p.endsWith(' ')) {
+      setInput(p);
+      requestAnimationFrame(() => inputRef.current?.focus());
+    } else {
+      send(p);
+    }
+  }
 
   useEffect(() => {
     api<{ messages: Msg[] }>('/chat/messages').then((r) => {
@@ -199,14 +214,48 @@ function ChatBody() {
     } finally {
       outgoing.forEach((p) => p.preview && URL.revokeObjectURL(p.preview));
       setThinking(null);
+      briefing.reload();
     }
   }
 
   const empty = messages.length === 0 && !thinking;
 
   return (
+    <div className="bx-chat-layout">
+      <aside className="bx-rail" aria-label="Baymax briefing">
+        <NotificationStack b={briefing} onPrompt={runPrompt} />
+      </aside>
+
+      {/* mobile: top strip + bell sheet */}
+      <div className="bx-mobile-strip" aria-label="Baymax notifications">
+        <div className="bx-strip-scroll" ref={(el) => { if (el) el.scrollLeft = 0; }} key={briefing.actions.map((a) => a.id).join('|')}>
+          {briefing.actions.slice(0, 4).map((a) => (
+            <ActionCard key={a.id} a={a} onPrompt={runPrompt} />
+          ))}
+        </div>
+        <button type="button" className="bx-bell" onClick={() => setSheet(true)} aria-label="Open briefing">
+          <Icon name="bell" className="w-[18px] h-[18px]" />
+          {briefing.actions.length > 0 && <span className="bx-bell-badge">{briefing.actions.length}</span>}
+        </button>
+      </div>
+      {sheet && (
+        <div className="bx-sheet" role="dialog" aria-modal="true" aria-label="Baymax briefing">
+          <button type="button" className="bx-sheet-scrim" onClick={() => setSheet(false)} aria-label="Close briefing" />
+          <div className="bx-sheet-panel fade-up">
+            <div className="bx-sheet-grip" />
+            <div className="bx-sheet-head">
+              <h2>Briefing</h2>
+              <button type="button" onClick={() => setSheet(false)} aria-label="Close">
+                <Icon name="x" className="w-4 h-4" />
+              </button>
+            </div>
+            <NotificationStack b={briefing} onPrompt={runPrompt} />
+          </div>
+        </div>
+      )}
+
     <div
-      className="relative h-full w-full max-w-none mx-0"
+      className="bx-chat-col relative h-full w-full max-w-none mx-0"
       onDragOver={(e) => {
         e.preventDefault();
         if (!dragging) setDragging(true);
@@ -240,12 +289,23 @@ function ChatBody() {
 
       <div className="relative z-10 flex flex-col h-full min-h-0 px-0 py-0">
         {/* ── messages ── */}
-        <div ref={messagesRef} className="flex-1 min-h-0 overflow-y-auto chat-scroll px-5 sm:px-8 py-5 space-y-5">
+        <div ref={messagesRef} className="bx-messages flex-1 min-h-0 overflow-y-auto chat-scroll space-y-4">
           {empty && (
-            <div className="h-full flex items-center justify-center px-6">
-              <p className="max-w-sm text-center text-[15px] leading-7 text-navy/55">
-                Hi, I am Baymax. What would you like to work on?
-              </p>
+            <div className="bx-empty">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/baymax-icon.png" alt="" className="bx-empty-orb" />
+              <h2>What should we grow today?</h2>
+              <p>I find products, write the posts, schedule them and track every sale.</p>
+              <div className="bx-suggest">
+                {[
+                  'Find 3 trending AliExpress products under $40',
+                  'Write a TikTok hook for my newest product',
+                  'What sold this week?',
+                  'Schedule tomorrow’s posts',
+                ].map((t) => (
+                  <button key={t} type="button" onClick={() => send(t)}>{t}</button>
+                ))}
+              </div>
             </div>
           )}
 
@@ -258,7 +318,7 @@ function ChatBody() {
               <span className="chat-typing-dot" />
               <span className="chat-typing-dot" />
               <span className="chat-typing-dot" />
-              <span className="ml-1">{thinking.phase === 'upload' ? 'Attaching files…' : 'Baymax is typing…'}</span>
+              <span className="ml-1">{thinking.phase === 'upload' ? 'Attaching files…' : 'Baymax is working…'}</span>
             </div>
           )}
 
@@ -328,6 +388,7 @@ function ChatBody() {
               <Icon name="camera" className="w-4 h-4" />
             </button>
             <input
+              ref={inputRef}
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => {
@@ -351,6 +412,7 @@ function ChatBody() {
         </div>
       </div>
     </div>
+    </div>
   );
 }
 
@@ -359,7 +421,7 @@ function Message({ m }: { m: Msg }) {
   const attachments = m.meta?.attachments ?? [];
   return (
     <div className={`flex gap-3 fade-up ${isUser ? 'flex-row-reverse' : ''}`}>
-      <div className={`max-w-[88%] ${isUser ? 'text-right' : ''}`}>
+      <div className={`max-w-[88%] sm:max-w-[78%] ${isUser ? 'text-right' : ''}`}>
         <div
           className={
             isUser
@@ -369,6 +431,17 @@ function Message({ m }: { m: Msg }) {
         >
           {m.content || (attachments.length ? '📎' : '')}
         </div>
+
+        {!isUser && (m.meta?.toolTrace?.length ?? 0) > 0 && (
+          <div className="bx-tools" aria-label="Actions Baymax took">
+            {m.meta!.toolTrace!.map((t, i) => (
+              <span key={i} className={`bx-tool ${t.ok ? '' : 'is-fail'}`}>
+                <Icon name={t.ok ? 'check' : 'x'} className="w-3 h-3" />
+                {t.name.replace(/_/g, ' ')}
+              </span>
+            ))}
+          </div>
+        )}
 
         {attachments.length > 0 && (
           <div className="flex flex-wrap gap-2 mt-2">

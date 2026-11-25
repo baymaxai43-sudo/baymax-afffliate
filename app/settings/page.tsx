@@ -28,7 +28,7 @@ function SettingsBody() {
 
   return (
     <div className="mx-auto w-full max-w-3xl space-y-5">
-      <div id="profile" className="rounded-3xl border border-white/70 bg-white/35 p-4 md:p-5">
+      <div id="profile" className="bx-card p-4 md:p-5">
         <p className="mb-1 text-[10px] font-extrabold uppercase tracking-[.16em] text-sky-deep">Account preferences</p>
         <h2 className="text-lg font-extrabold text-navy">Workspace settings</h2>
         <p className="mt-1 text-xs text-navy/55">Connected social accounts and Autopilot are managed together on the Connected Accounts page.</p>
@@ -56,10 +56,10 @@ function SettingsBody() {
         </div>
       </Card></div>
 
-      <div id="appearance" className="rounded-3xl border border-white/70 bg-white/45 p-5">
+      <div id="appearance" className="bx-card p-5">
         <h2 className="font-bold text-navy">Appearance</h2>
-        <p className="mt-1 text-xs text-navy/50">Baymax currently uses the atmospheric blue and translucent glass theme.</p>
-        <Badge tone="blue">Blue glass theme active</Badge>
+        <p className="mt-1 text-xs text-navy/50">Baymax uses the Energy theme: midnight glass with electric accents, tuned for long sessions.</p>
+        <Badge tone="blue">Energy theme active</Badge>
       </div>
     </div>
   );
