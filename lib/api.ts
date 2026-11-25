@@ -10,6 +10,10 @@ export async function api<T = any>(
   path: string,
   opts: { method?: string; body?: unknown } = {}
 ): Promise<T> {
+  const demoSession = typeof window !== 'undefined' && window.localStorage.getItem('baymax-demo-session') === 'active';
+  if (demoSession && path !== '/auth/status') {
+    throw new ApiError(503, 'Demo preview only: backend reads and actions are disabled until authentication is approved.');
+  }
   const isForm = typeof FormData !== 'undefined' && opts.body instanceof FormData;
   const res = await fetch('/api' + path, {
     method: opts.method ?? (opts.body !== undefined ? 'POST' : 'GET'),
