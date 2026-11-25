@@ -44,7 +44,7 @@ function ProfileBody() {
         </div>
       </Card>
       <div className="overflow-hidden rounded-3xl border border-white/80 bg-white/55 p-2 shadow-[0_16px_48px_rgba(35,72,118,.09)] backdrop-blur-xl">
-        {sections.map((item, index) => (
+        {sections.map((item) => (
           <Link key={item.title} href={item.href} className="flex items-center gap-3 rounded-2xl px-3 py-3.5 transition hover:bg-white/75 sm:px-4">
             <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-sky-deep/10 text-sky-deep">
               <Icon name={item.icon} className="h-4 w-4" />
