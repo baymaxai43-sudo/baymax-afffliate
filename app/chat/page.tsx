@@ -244,7 +244,7 @@ function ChatBody() {
 
   return (
     <div
-      className="relative h-[calc(100dvh-7rem)] max-w-3xl mx-auto"
+      className="relative h-full w-full max-w-none mx-0"
       onDragOver={(e) => {
         e.preventDefault();
         if (!dragging) setDragging(true);
@@ -276,7 +276,7 @@ function ChatBody() {
         </div>
       )}
 
-      <div className="relative z-10 flex flex-col h-full glass rounded-3xl px-4 py-4 md:px-6">
+      <div className="relative z-10 flex flex-col h-full glass rounded-none border-x-0 px-3 py-3 sm:px-4 md:px-6">
         {/* ── agent header ── */}
         <div className="flex items-center gap-3 pb-4 border-b border-white/60">
           <span className={`shrink-0 ${thinking ? 'halo' : ''}`}>
