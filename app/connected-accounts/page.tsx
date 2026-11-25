@@ -197,5 +197,5 @@ function ConnectedAccountsBody() {
 }
 
 export default function ConnectedAccountsPage() {
-  return <AppShell title="Connected Accounts"><ConnectedAccountsBody /></AppShell>;
+  return <AppShell title="Connected Accounts" back="/profile"><ConnectedAccountsBody /></AppShell>;
 }

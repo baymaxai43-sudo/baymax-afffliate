@@ -6,7 +6,7 @@ import { Card } from '@/components/ui';
 
 export default function AboutPage() {
   return (
-    <AppShell title="About Baymax">
+    <AppShell title="About Baymax" back="/profile">
       <div className="mx-auto max-w-3xl space-y-5">
         <Card className="overflow-hidden">
           <div className="relative bx-hero px-7 py-10 text-center">

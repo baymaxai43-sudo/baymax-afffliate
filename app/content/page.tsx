@@ -30,7 +30,7 @@ const TABS = ['all', 'draft', 'scheduled', 'published', 'failed'] as const;
 
 export default function ContentPage() {
   return (
-    <AppShell title="Content">
+    <AppShell title="Content" back="/profile">
       <ContentBody />
     </AppShell>
   );

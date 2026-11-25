@@ -23,6 +23,7 @@ export default function ProductsPage() {
   return (
     <AppShell
       title="Products"
+      back="/dashboard"
     >
       <ProductsBody />
     </AppShell>
