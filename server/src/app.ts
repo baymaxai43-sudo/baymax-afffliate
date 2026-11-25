@@ -14,6 +14,7 @@ import { connectionRoutes } from './routes/connections';
 import { cronRoutes } from './routes/cron';
 import { trackRoutes } from './routes/track';
 import { profileRoutes } from './routes/profiles';
+import { studioRoutes } from './routes/studio';
 
 declare module 'fastify' {
   interface FastifyInstance {
@@ -80,6 +81,7 @@ export function buildApp(): FastifyInstance {
     await scope.register(chatRoutes);
     await scope.register(settingsRoutes);
     await scope.register(profileRoutes);
+    await scope.register(studioRoutes);
   });
 
   cached = app;

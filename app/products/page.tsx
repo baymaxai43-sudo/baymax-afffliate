@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
 import { AppShell } from '@/components/AppShell';
 import { Badge, Button, Card, EmptyState, Input, Modal } from '@/components/ui';
@@ -39,6 +40,60 @@ function ProductsBody() {
   const [busy, setBusy] = useState(false);
   const [manual, setManual] = useState(false);
   const [form, setForm] = useState({ title: '', price: '', image_url: '', affiliate_url: '' });
+  const [working, setWorking] = useState<string | null>(null);
+  const router = useRouter();
+  const fileRef = useRef<HTMLInputElement>(null);
+  const formFileRef = useRef<HTMLInputElement>(null);
+  const uploadFor = useRef<string | null>(null);
+
+  async function uploadImage(file: File, productId?: string): Promise<string | null> {
+    const fd = new FormData();
+    fd.append('file', file);
+    try {
+      const r = await api<{ url: string }>(productId ? `/products/${productId}/image` : '/studio/upload', { body: fd });
+      return r.url;
+    } catch (e: any) {
+      alert(e?.message ?? 'Upload failed');
+      return null;
+    }
+  }
+
+  function pickPhoto(p: Product) {
+    uploadFor.current = p.id;
+    fileRef.current?.click();
+  }
+
+  async function onPhotoPicked(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    const id = uploadFor.current;
+    if (!file || !id) return;
+    setWorking(id);
+    await uploadImage(file, id);
+    setWorking(null);
+    await load();
+  }
+
+  async function onFormPhotoPicked(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    setBusy(true);
+    const url = await uploadImage(file);
+    setBusy(false);
+    if (url) setForm((f) => ({ ...f, image_url: url }));
+  }
+
+  async function makeVideo(p: Product) {
+    setWorking(p.id);
+    try {
+      await api('/studio/jobs', { body: { product_id: p.id } });
+      router.push('/studio');
+    } catch (e: any) {
+      alert(e?.message ?? 'Could not start the video');
+      setWorking(null);
+    }
+  }
 
   async function load(search = q) {
     try {
@@ -152,6 +207,16 @@ function ProductsBody() {
                 <span className="absolute top-2.5 left-2.5">
                   <Badge tone={p.status === 'active' ? 'green' : 'gray'}>{p.status}</Badge>
                 </span>
+                <button
+                  type="button"
+                  onClick={() => pickPhoto(p)}
+                  className="bx-photo-btn"
+                  aria-label={p.image_url ? 'Replace photo' : 'Upload photo'}
+                  title={p.image_url ? 'Replace photo' : 'Upload photo'}
+                  disabled={working === p.id}
+                >
+                  <Icon name="camera" className="w-4 h-4" />
+                </button>
               </div>
               <div className="p-4 flex-1 flex flex-col">
                 <h3 className="font-bold text-navy text-sm leading-snug line-clamp-2 min-h-[2.5rem]">{p.title}</h3>
@@ -160,7 +225,17 @@ function ProductsBody() {
                     {p.price != null ? `${p.price} ${p.currency ?? ''}` : '—'}
                   </span>
                 </div>
-                <div className="flex gap-2 mt-3">
+                <Button
+                  size="sm"
+                  variant="sky"
+                  className="mt-3 w-full"
+                  onClick={() => makeVideo(p)}
+                  disabled={working === p.id || !p.image_url}
+                  title={p.image_url ? 'Captions → image → video' : 'Add a photo first'}
+                >
+                  <Icon name="sparkles" className="w-3.5 h-3.5" /> {working === p.id ? 'Starting…' : 'Make video'}
+                </Button>
+                <div className="flex gap-2 mt-2">
                   {p.short_code && (
                     <Button size="sm" variant="outline" onClick={() => copyLink(p)}>
                       <Icon name="copy" className="w-3.5 h-3.5" /> Link
@@ -178,6 +253,9 @@ function ProductsBody() {
           ))}
         </div>
       )}
+
+      <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp" hidden onChange={onPhotoPicked} />
+      <input ref={formFileRef} type="file" accept="image/jpeg,image/png,image/webp" hidden onChange={onFormPhotoPicked} />
 
       <Modal open={open} onClose={() => { setOpen(false); setError(''); setManual(false); }} title="Add product">
         <div className="space-y-4">
@@ -214,11 +292,20 @@ function ProductsBody() {
                   placeholder="Affiliate link *"
                 />
               </div>
-              <Input
-                value={form.image_url}
-                onChange={(v) => setForm({ ...form, image_url: v })}
-                placeholder="Image URL (optional)"
-              />
+              <div className="flex gap-2 items-center">
+                <Input
+                  value={form.image_url}
+                  onChange={(v) => setForm({ ...form, image_url: v })}
+                  placeholder="Image URL, or upload a photo"
+                />
+                <Button variant="outline" onClick={() => formFileRef.current?.click()} disabled={busy}>
+                  <Icon name="camera" className="w-4 h-4" /> Upload
+                </Button>
+              </div>
+              {form.image_url && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={form.image_url} alt="" className="h-24 w-24 rounded-xl object-cover" />
+              )}
               <Button variant="sky" className="w-full" onClick={addManual} disabled={busy || !form.title || !form.affiliate_url}>
                 Save product
               </Button>

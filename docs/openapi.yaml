@@ -39,6 +39,8 @@ tags:
     description: Clicks, sales and revenue
   - name: Chat
     description: Baymax agent chat
+  - name: Studio
+    description: Captions (Groq) → quality check → ad image + video (Agnes)
   - name: Settings
     description: Autopilot and configuration
   - name: Connections
@@ -618,7 +620,10 @@ paths:
                     type: object
                     properties:
                       configured: { type: boolean }
-                      primary: { type: string, example: 'Gemini (gemini-3.1-pro-preview)' }
+                      primary: { type: string, example: 'groq (openai/gpt-oss-120b)' }
+                      agnes: { type: boolean }
+                      image: { type: string, example: 'Agnes (agnes-image-2.5-flash)' }
+                      video: { type: string, example: 'Agnes (agnes-video-2.5-flash)' }
                       gemini: { type: boolean }
                       groq: { type: boolean }
                   social:
@@ -643,6 +648,8 @@ paths:
                 dailyPerPlatform: { type: number, minimum: 0, maximum: 6 }
                 times: { type: array, items: { type: string, pattern: '^\d{2}:\d{2}$' }, maxItems: 6 }
                 brandVoice: { type: string, maxLength: 500 }
+                videosPerDay: { type: number, minimum: 0, maximum: 5, description: Studio videos autopilot starts per day }
+                reviewMode: { type: boolean, description: true = finished videos wait for approval }
       responses:
         '200':
           description: Updated
@@ -772,6 +779,146 @@ paths:
               schema: { $ref: '#/components/schemas/TickResult' }
         '401': { $ref: '#/components/responses/Unauthorized' }
 
+  # ───────────────────────── Studio ─────────────────────────
+  /studio/status:
+    get:
+      operationId: studioStatus
+      tags: [Studio]
+      summary: Which caption, image and video engines are configured
+      responses:
+        '200':
+          description: Engines
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  captions: { type: string, example: 'groq (openai/gpt-oss-120b)' }
+                  image: { type: [string, 'null'], example: 'agnes (agnes-image-2.5-flash)' }
+                  video: { type: [string, 'null'], example: 'agnes (agnes-video-2.5-flash)' }
+                  ready: { type: boolean }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+  /studio/upload:
+    post:
+      operationId: studioUpload
+      tags: [Studio]
+      summary: Upload a product photo (JPG, PNG, WebP) and get its public URL
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema: { type: object, properties: { file: { type: string, format: binary } }, required: [file] }
+      responses:
+        '201': { description: Uploaded, content: { application/json: { schema: { type: object, properties: { url: { type: string } } } } } }
+        '400': { description: Not an image }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+  /products/{id}/image:
+    post:
+      operationId: uploadProductImage
+      tags: [Studio, Products]
+      summary: Replace a product's photo with an uploaded image
+      parameters: [{ name: id, in: path, required: true, schema: { type: string, format: uuid } }]
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema: { type: object, properties: { file: { type: string, format: binary } }, required: [file] }
+      responses:
+        '200': { description: Saved, content: { application/json: { schema: { type: object, properties: { url: { type: string } } } } } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+  /studio/jobs:
+    get:
+      operationId: listStudioJobs
+      tags: [Studio]
+      summary: List video jobs, newest first
+      parameters:
+        - { name: status, in: query, schema: { type: string, enum: [queued, running, review, approved, failed] } }
+        - { name: limit, in: query, schema: { type: integer, maximum: 100, default: 40 } }
+      responses:
+        '200': { description: Jobs, content: { application/json: { schema: { type: object, properties: { jobs: { type: array, items: { $ref: '#/components/schemas/StudioJob' } } } } } } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+    post:
+      operationId: createStudioJob
+      tags: [Studio]
+      summary: Start captions → quality check → image → video for a product
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [product_id]
+              properties:
+                product_id: { type: string, format: uuid }
+                image_url: { type: string, description: Optional source photo; defaults to the product's photo }
+      responses:
+        '201': { description: Started, content: { application/json: { schema: { type: object, properties: { job: { $ref: '#/components/schemas/StudioJob' } } } } } }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+  /studio/jobs/{id}:
+    parameters: [{ name: id, in: path, required: true, schema: { type: string, format: uuid } }]
+    get:
+      operationId: getStudioJob
+      tags: [Studio]
+      summary: One job with its progress
+      responses:
+        '200': { description: Job, content: { application/json: { schema: { type: object, properties: { job: { $ref: '#/components/schemas/StudioJob' } } } } } }
+        '404': { $ref: '#/components/responses/NotFound' }
+    delete:
+      operationId: deleteStudioJob
+      tags: [Studio]
+      summary: Delete a job
+      responses:
+        '200': { description: Deleted }
+  /studio/jobs/{id}/captions:
+    parameters: [{ name: id, in: path, required: true, schema: { type: string, format: uuid } }]
+    patch:
+      operationId: editStudioCaptions
+      tags: [Studio]
+      summary: Edit the TikTok and/or YouTube caption before approving
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                tiktok: { $ref: '#/components/schemas/Caption' }
+                youtube: { $ref: '#/components/schemas/Caption' }
+      responses:
+        '200': { description: Updated }
+        '404': { $ref: '#/components/responses/NotFound' }
+  /studio/jobs/{id}/approve:
+    parameters: [{ name: id, in: path, required: true, schema: { type: string, format: uuid } }]
+    post:
+      operationId: approveStudioJob
+      tags: [Studio]
+      summary: Approve a finished video and schedule it for TikTok + YouTube
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                platforms: { type: array, items: { type: string, enum: [tiktok, youtube] } }
+                publish_now: { type: boolean }
+      responses:
+        '200': { description: Scheduled, content: { application/json: { schema: { type: object, properties: { ok: { type: boolean }, content_ids: { type: array, items: { type: string } } } } } } }
+        '409': { description: Job is not in review }
+  /studio/jobs/{id}/retry:
+    parameters: [{ name: id, in: path, required: true, schema: { type: string, format: uuid } }]
+    post:
+      operationId: retryStudioJob
+      tags: [Studio]
+      summary: Retry a failed job, or redo from a step
+      requestBody:
+        content:
+          application/json:
+            schema: { type: object, properties: { from: { type: string, enum: [captions, image, video] } } }
+      responses:
+        '200': { description: Restarted }
+        '409': { description: Already approved }
+
 components:
   securitySchemes:
     cookieAuth:
@@ -822,6 +969,38 @@ components:
       content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
 
   schemas:
+    Caption:
+      type: object
+      properties:
+        title: { type: string }
+        body: { type: string }
+        hashtags: { type: array, items: { type: string } }
+    StudioJob:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        product_id: { type: string, format: uuid }
+        status: { type: string, enum: [queued, running, review, approved, failed] }
+        step: { type: string, enum: [captions, caption_check, image, video, video_poll, done] }
+        captions:
+          type: [object, 'null']
+          properties:
+            tiktok: { $ref: '#/components/schemas/Caption' }
+            youtube: { $ref: '#/components/schemas/Caption' }
+            image_prompt: { type: string }
+            video_prompt: { type: string }
+        quality:
+          type: [object, 'null']
+          properties:
+            score: { type: number, minimum: 0, maximum: 10 }
+            issues: { type: array, items: { type: string } }
+            rewrites: { type: integer }
+        image_url: { type: [string, 'null'] }
+        video_url: { type: [string, 'null'] }
+        error: { type: [string, 'null'] }
+        attempts: { type: integer }
+        auto: { type: boolean, description: Started by autopilot }
+        created_at: { type: string, format: date-time }
     Error:
       type: object
       required: [error]

@@ -9,7 +9,7 @@ import { existsSync, readFileSync, writeFileSync, mkdirSync, renameSync } from '
 import { dirname, join } from 'node:path';
 
 const FILE = join(process.cwd(), '.local-store', 'db.json');
-const TABLES = ['settings', 'products', 'content', 'events', 'connections', 'chat_messages'] as const;
+const TABLES = ['settings', 'products', 'content', 'events', 'connections', 'chat_messages', 'pipeline_jobs'] as const;
 type Table = (typeof TABLES)[number];
 
 type Row = Record<string, any>;
@@ -216,7 +216,7 @@ class LocalQuery {
         const row: Row = { id: uuid(), created_at: now, ...raw };
         // Mirror Postgres column defaults
         if (this.table === 'events' && !row.occurred_at) row.occurred_at = now;
-        if (!row.updated_at && ['settings', 'connections', 'content', 'products'].includes(this.table)) {
+        if (!row.updated_at && ['settings', 'connections', 'content', 'products', 'pipeline_jobs'].includes(this.table)) {
           row.updated_at = now;
         }
         // unique short_code

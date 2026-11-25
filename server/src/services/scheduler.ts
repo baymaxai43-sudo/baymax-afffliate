@@ -2,12 +2,19 @@
 import { db, getSetting, setSetting } from '../db';
 import { publishPost, PublishError } from './publishers';
 import { generatePosts, type ProductLike } from './contentGen';
+import { advanceJobs, enqueueJob } from './pipeline';
+import { agnesConfigured } from './agnes';
+import { geminiImageConfigured } from './geminiImage';
 
 export interface AutopilotSettings {
   enabled: boolean;
   dailyPerPlatform: number;
   times: string[]; // "HH:MM" local slots
   brandVoice: string;
+  /** Studio videos (captions → image → video) to start per day. */
+  videosPerDay: number;
+  /** When true, finished videos wait for your approval before they're scheduled. */
+  reviewMode: boolean;
 }
 
 export const DEFAULT_AUTOPILOT: AutopilotSettings = {
@@ -15,6 +22,8 @@ export const DEFAULT_AUTOPILOT: AutopilotSettings = {
   dailyPerPlatform: 1,
   times: ['10:00', '15:00', '19:00'],
   brandVoice: 'friendly, energetic, trustworthy',
+  videosPerDay: 1,
+  reviewMode: true,
 };
 
 export interface TickResult {
@@ -96,10 +105,44 @@ function nextSlots(times: string[], count: number, from = new Date()): string[] 
   return slots;
 }
 
+const studioReady = () => agnesConfigured() || geminiImageConfigured();
+
+/** Autopilot: start today's studio video jobs, rotating through products with the oldest last job. */
+async function enqueueStudioJobs(autopilot: AutopilotSettings): Promise<number> {
+  if (!autopilot.enabled || !studioReady() || autopilot.videosPerDay <= 0) return 0;
+  const startOfDay = new Date();
+  startOfDay.setHours(0, 0, 0, 0);
+  const { count } = await db()
+    .from('pipeline_jobs')
+    .select('id', { count: 'exact', head: true })
+    .eq('auto', true)
+    .gte('created_at', startOfDay.toISOString());
+  let need = autopilot.videosPerDay - (count ?? 0);
+  if (need <= 0) return 0;
+
+  const { data: products } = await db().from('products').select('*').eq('status', 'active').limit(100);
+  if (!products?.length) return 0;
+  const { data: jobs } = await db().from('pipeline_jobs').select('product_id, created_at').limit(1000);
+  const last = new Map<string, string>();
+  for (const j of jobs ?? []) {
+    if (!last.has(j.product_id) || last.get(j.product_id)! < j.created_at) last.set(j.product_id, j.created_at);
+  }
+  const ordered = [...products].sort((a, b) => (last.get(a.id) ?? '').localeCompare(last.get(b.id) ?? ''));
+  let started = 0;
+  for (const p of ordered) {
+    if (need-- <= 0) break;
+    await enqueueJob({ productId: p.id, auto: true, brandVoice: autopilot.brandVoice, reviewMode: autopilot.reviewMode });
+    started++;
+  }
+  return started;
+}
+
 /** Generate + schedule the next batch of autopilot content. */
 async function generateBatch(): Promise<number> {
   const autopilot = await getAutopilot();
   if (!autopilot.enabled) return 0;
+  // With an image/video provider configured, the Studio pipeline makes the posts instead.
+  if (studioReady()) return enqueueStudioJobs(autopilot);
 
   const { data: products } = await db()
     .from('products')
@@ -157,6 +200,7 @@ async function generateBatch(): Promise<number> {
 
 export async function tick(opts: { generate?: boolean } = {}): Promise<TickResult> {
   const pub = await publishDue();
+  await advanceJobs().catch((e) => console.error('[pipeline] advance failed:', e));
   let generated = 0;
   if (opts.generate !== false) {
     generated = await generateBatch();
