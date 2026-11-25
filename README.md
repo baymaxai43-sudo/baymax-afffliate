@@ -2,7 +2,7 @@
 
 **Your private autonomous affiliate marketing AI** — runs your AliExpress affiliate store, writes & schedules TikTok/YouTube content, tracks clicks and sales. One owner. Full autopilot.
 
-Live at **baymax-shoppey.vercel.app**
+Live at **baymax-afffliate.vercel.app**
 
 ## ✨ What it does
 
@@ -54,7 +54,7 @@ API_ORIGIN=http://localhost:4000 npm run dev   # Next proxies /api + /c → :400
 | `SUPABASE_SERVICE_KEY` | ✅ | Server-side secret key (Supabase dashboard → Settings → API) |
 | `GEMINI_API_KEY` | ⭐ | Primary AI brain |
 | `GROQ_API_KEY` | ⭐ | Fallback AI |
-| `APP_URL` | ✅ | `https://baymax-shoppey.vercel.app` |
+| `APP_URL` | ✅ | `https://baymax-afffliate.vercel.app` |
 | `CRON_SECRET` | ✅ | Auth for `/api/cron/tick` |
 | `YOUTUBE_CLIENT_ID/SECRET` | optional | YouTube OAuth connect |
 | `TIKTOK_CLIENT_KEY/SECRET` | optional | TikTok OAuth connect |

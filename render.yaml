@@ -15,7 +15,7 @@ services:
       - key: OWNER_PASSWORD_HASH
         sync: false          # bcrypt hash — generate: npm run hash -- "your-password"
       - key: APP_URL
-        value: https://baymax-shoppey.vercel.app
+        value: https://baymax-afffliate.vercel.app
       - key: NODE_ENV
         value: production
       # Shared with Vercel so the daily cron ping (/api/cron/tick) passes auth
