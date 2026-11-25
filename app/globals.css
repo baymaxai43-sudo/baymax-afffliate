@@ -228,3 +228,119 @@ body {
     transform: translateX(100%);
   }
 }
+
+
+/* ===== Baymax Hark-inspired workspace shell ===== */
+.baymax-app {
+  position: relative;
+  min-height: 100dvh;
+  overflow-x: clip;
+  background: linear-gradient(155deg, #c5dcf8 0%, #dceafb 34%, #edf4fd 68%, #d9e8fa 100%);
+  isolation: isolate;
+}
+.baymax-atmosphere {
+  position: fixed; inset: 0; z-index: -1; overflow: hidden; pointer-events: none;
+  background: radial-gradient(ellipse at 15% 5%, rgba(255,255,255,.7), transparent 38%),
+              radial-gradient(ellipse at 88% 72%, rgba(120,174,235,.24), transparent 42%);
+}
+.baymax-cloud {
+  position: absolute; display: block; width: 360px; height: 92px; border-radius: 999px;
+  background: rgba(255,255,255,.32); filter: blur(22px);
+}
+.cloud-one { top: 15%; left: -130px; transform: rotate(-12deg); }
+.cloud-two { top: 62%; right: -170px; transform: rotate(14deg); }
+.cloud-three { top: 82%; left: 30%; width: 260px; opacity: .6; }
+.baymax-glow { position:absolute; width:380px; height:380px; border-radius:50%; filter:blur(80px); opacity:.24; }
+.glow-one { background:#72aef0; top:-210px; right:12%; }
+.glow-two { background:#a8c9f1; bottom:-250px; left:10%; }
+.baymax-topbar {
+  position: sticky; top: 0; z-index: 35; min-height: 86px; padding: 16px clamp(18px,4vw,54px);
+  display:flex; align-items:center; justify-content:space-between; gap:20px;
+  background:linear-gradient(180deg,rgba(207,226,248,.82),rgba(207,226,248,.42));
+  backdrop-filter: blur(22px); -webkit-backdrop-filter: blur(22px);
+  border-bottom:1px solid rgba(255,255,255,.48);
+}
+.baymax-brand { display:flex; align-items:center; gap:10px; color:#10264b; text-decoration:none; font-weight:850; font-size:17px; letter-spacing:-.045em; white-space:nowrap; }
+.baymax-brand-icon { width:37px; height:37px; object-fit:contain; border-radius:13px; background:rgba(255,255,255,.85); box-shadow:0 5px 16px rgba(36,75,125,.12); }
+.baymax-brand-soft { color:#5d91d0; }
+.baymax-nav { display:flex; align-items:center; gap:5px; padding:6px; border:1px solid rgba(255,255,255,.78); border-radius:999px; background:rgba(255,255,255,.52); box-shadow:0 9px 28px rgba(50,88,135,.10),inset 0 1px 0 rgba(255,255,255,.8); backdrop-filter:blur(24px); }
+.baymax-nav-desktop { position:absolute; left:50%; transform:translateX(-50%); }
+.baymax-nav-link { display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:10px 17px; border-radius:999px; color:rgba(20,43,76,.62); text-decoration:none; font-size:13px; font-weight:700; transition:all .2s ease; white-space:nowrap; }
+.baymax-nav-link:hover { background:rgba(255,255,255,.7); color:#18365f; }
+.baymax-nav-link.is-active { color:#174b83; background:rgba(255,255,255,.94); box-shadow:0 4px 13px rgba(40,82,132,.12),inset 0 0 0 1px rgba(255,255,255,.95); }
+.baymax-top-actions { display:flex; align-items:center; gap:12px; margin-left:auto; }
+.baymax-demo-pill { border:1px solid rgba(255,255,255,.8); background:rgba(255,255,255,.55); border-radius:999px; padding:6px 10px; color:#416b9c; font-size:9px; font-weight:900; letter-spacing:.12em; }
+.baymax-avatar-button { position:relative; display:grid; place-items:center; width:42px; height:42px; padding:3px; border-radius:50%; border:1px solid rgba(255,255,255,.9); background:rgba(255,255,255,.58); box-shadow:0 5px 16px rgba(40,82,132,.12); }
+.baymax-avatar-button img { width:100%; height:100%; object-fit:cover; border-radius:50%; }
+.baymax-avatar-button.is-open { box-shadow:0 0 0 4px rgba(255,255,255,.35),0 5px 16px rgba(40,82,132,.12); }
+.baymax-online-dot { position:absolute; width:10px; height:10px; right:0; bottom:1px; border:2px solid white; background:#36b77a; border-radius:50%; }
+.baymax-profile-menu { position:absolute; top:54px; right:0; z-index:50; width:min(290px,calc(100vw - 28px)); padding:10px; border:1px solid rgba(255,255,255,.9); border-radius:22px; background:rgba(248,252,255,.94); box-shadow:0 20px 60px rgba(34,69,112,.2); backdrop-filter:blur(26px); animation:fadeUp .18s ease-out both; }
+.baymax-profile-heading { display:flex; align-items:center; gap:10px; padding:10px 9px 13px; border-bottom:1px solid rgba(57,91,133,.1); }
+.baymax-profile-heading img { width:38px; height:38px; border-radius:13px; background:white; }
+.baymax-profile-heading strong,.baymax-profile-heading span { display:block; }
+.baymax-profile-heading strong { color:#18365f; font-size:13px; }
+.baymax-profile-heading span { color:#7890ad; font-size:11px; margin-top:2px; }
+.baymax-profile-links { display:grid; gap:2px; padding:8px 0; max-height:min(58vh,490px); overflow:auto; }
+.baymax-profile-link,.baymax-signout { display:flex; align-items:center; gap:11px; width:100%; padding:9px 10px; border:0; border-radius:11px; color:#47617f; text-decoration:none; background:transparent; text-align:left; font-size:12px; font-weight:650; cursor:pointer; }
+.baymax-profile-link:hover { color:#1c548e; background:rgba(112,164,221,.12); }
+.baymax-signout { color:#b34f5b; border-top:1px solid rgba(57,91,133,.1); border-radius:0 0 10px 10px; padding-top:13px; }
+.baymax-signout:hover { background:rgba(205,82,98,.08); }
+.baymax-main { position:relative; z-index:1; width:min(1440px,100%); margin:0 auto; padding:24px clamp(16px,4vw,54px) 72px; }
+.baymax-page-heading { display:flex; align-items:center; justify-content:space-between; gap:16px; margin:2px 0 24px; }
+.baymax-page-heading h1 { margin:3px 0 0; color:#17365e; font-size:clamp(25px,3vw,34px); line-height:1.1; font-weight:850; letter-spacing:-.05em; }
+.baymax-eyebrow { margin:0; color:#6d8fb6; font-size:9px; font-weight:850; letter-spacing:.17em; }
+.baymax-nav-mobile { display:none; }
+.baymax-login { position:relative; min-height:100dvh; overflow:hidden; display:flex; flex-direction:column; color:#17365e; background:linear-gradient(145deg,#a9c9ed 0%,#c8def6 38%,#e8f2fc 75%,#c4dbf4 100%); isolation:isolate; }
+.baymax-login-sky { position:absolute; inset:0; z-index:-1; overflow:hidden; pointer-events:none; }
+.login-cloud { position:absolute; width:360px; height:110px; border-radius:100%; background:rgba(255,255,255,.38); filter:blur(26px); }
+.login-cloud-a { left:-140px; bottom:12%; }
+.login-cloud-b { right:-150px; top:18%; width:430px; }
+.login-cloud-c { left:40%; bottom:-50px; width:330px; }
+.login-orb { position:absolute; width:360px; height:360px; border-radius:50%; filter:blur(75px); opacity:.23; background:#6da8e8; }
+.login-orb-a { top:-210px; right:15%; }
+.login-orb-b { bottom:-230px; left:8%; background:#fff; }
+.baymax-login-header { display:flex; align-items:center; justify-content:space-between; padding:22px clamp(18px,5vw,64px); }
+.baymax-private-label { display:flex; align-items:center; gap:8px; padding:8px 12px; border:1px solid rgba(255,255,255,.65); border-radius:999px; background:rgba(255,255,255,.28); color:#54769d; font-size:9px; font-weight:850; letter-spacing:.12em; }
+.baymax-private-label span,.baymax-demo-dot { width:7px; height:7px; border-radius:50%; background:#37ae79; box-shadow:0 0 0 4px rgba(55,174,121,.12); }
+.baymax-login-content { width:min(1040px,100%); margin:auto; padding:34px 18px 52px; display:grid; grid-template-columns:1fr minmax(300px,390px); align-items:center; gap:clamp(36px,8vw,100px); }
+.baymax-login-intro { text-align:left; max-width:510px; }
+.baymax-login-mascot { display:block; width:auto; height:clamp(120px,17vw,190px); object-fit:contain; object-position:left center; margin:0 0 24px; filter:drop-shadow(0 18px 28px rgba(36,75,125,.18)); }
+.baymax-login-intro h1 { margin:12px 0; color:#17365e; font-size:clamp(38px,5.5vw,66px); line-height:.99; font-weight:850; letter-spacing:-.065em; }
+.baymax-login-intro h1 span { color:#5a8fc8; }
+.baymax-login-subtitle { max-width:390px; color:#54708f; font-size:15px; line-height:1.7; }
+.baymax-login-card { padding:30px; border:1px solid rgba(255,255,255,.85); border-radius:27px; background:rgba(255,255,255,.68); box-shadow:0 24px 70px rgba(39,78,125,.15),inset 0 1px 0 white; backdrop-filter:blur(26px); }
+.baymax-login-card-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:26px; }
+.baymax-login-card h2 { margin:5px 0 0; color:#18365e; font-size:22px; font-weight:850; letter-spacing:-.04em; }
+.baymax-lock-mark { display:grid; place-items:center; width:38px; height:38px; border-radius:14px; background:rgba(101,155,213,.13); color:#5b91ca; font-size:20px; }
+.baymax-login-card label { display:block; margin-bottom:8px; color:#486584; font-size:11px; font-weight:800; }
+.baymax-password-wrap { display:flex; align-items:center; gap:8px; padding:5px 7px 5px 14px; border:1px solid rgba(91,133,178,.2); border-radius:15px; background:rgba(255,255,255,.82); transition:border .2s,box-shadow .2s; }
+.baymax-password-wrap:focus-within { border-color:#78a9dd; box-shadow:0 0 0 4px rgba(105,159,215,.12); }
+.baymax-password-wrap input { min-width:0; flex:1; border:0; outline:0; background:transparent; padding:9px 0; color:#17365e; font-size:13px; }
+.baymax-password-wrap button { border:0; border-radius:9px; padding:7px 9px; background:rgba(99,148,203,.1); color:#5d82ab; font-size:10px; font-weight:800; cursor:pointer; }
+.baymax-login-submit { display:flex; align-items:center; justify-content:space-between; width:100%; margin-top:15px; padding:14px 17px; border:0; border-radius:15px; color:white; background:linear-gradient(120deg,#4d88c9,#77a9df); box-shadow:0 9px 22px rgba(73,132,195,.24); font-size:13px; font-weight:800; cursor:pointer; transition:transform .2s,filter .2s; }
+.baymax-login-submit:hover { transform:translateY(-1px); filter:brightness(1.04); }
+.baymax-login-submit span { font-size:18px; }
+.baymax-demo-note { display:flex; align-items:center; gap:9px; margin-top:17px; color:#6682a2; font-size:10px; line-height:1.5; }
+.baymax-login-foot { margin:18px 0 0; color:#91a4ba; text-align:center; font-size:9px; }
+.baymax-login-error { margin:10px 0 0; color:#b84d5d; font-size:11px; font-weight:700; }
+.baymax-login-footer { padding:18px; color:#6e8eb2; text-align:center; font-size:9px; font-weight:800; letter-spacing:.17em; }
+@media (max-width: 900px) {
+  .baymax-topbar { min-height:74px; padding:12px 18px; }
+  .baymax-nav-desktop { display:none; }
+  .baymax-nav-mobile { display:flex; position:fixed; z-index:60; left:50%; bottom:max(14px,env(safe-area-inset-bottom)); transform:translateX(-50%); width:max-content; max-width:calc(100vw - 28px); }
+  .baymax-nav-mobile .baymax-nav-link { min-width:84px; flex-direction:column; gap:4px; padding:9px 17px; font-size:10px; }
+  .baymax-main { padding:20px 16px 112px; }
+  .baymax-page-heading { margin-bottom:19px; }
+}
+@media (max-width: 640px) {
+  .baymax-brand { font-size:15px; }
+  .baymax-brand-icon { width:34px; height:34px; }
+  .baymax-demo-pill { display:none; }
+  .baymax-login-content { grid-template-columns:1fr; gap:25px; width:min(440px,100%); padding-top:20px; }
+  .baymax-login-intro { text-align:center; }
+  .baymax-login-mascot { height:112px; margin:0 auto 16px; }
+  .baymax-login-intro h1 { font-size:42px; }
+  .baymax-login-subtitle { margin:0 auto; font-size:13px; }
+  .baymax-login-card { padding:23px; }
+  .baymax-login-header { padding:17px 18px; }
+}
