@@ -363,7 +363,7 @@ body {
 .baymax-main-chat { width: 100%; max-width: none; height: calc(100dvh - 86px); min-height: 420px; margin: 0; padding: 0; }
 .baymax-main-chat > .baymax-page-heading { display: none; }
 .baymax-main-chat > div { width: 100%; max-width: none; height: 100%; margin: 0; }
-.baymax-main-chat .glass { border-radius: 0; border-left: 0; border-right: 0; box-shadow: none; }
+.baymax-main-chat > div > .glass { border-radius: 0; border-left: 0; border-right: 0; box-shadow: none; }
 @media (max-width: 900px) {
   .baymax-main-chat { height: calc(100dvh - 112px); min-height: 420px; }
 }
