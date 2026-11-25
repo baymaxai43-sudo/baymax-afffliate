@@ -57,6 +57,13 @@ function ContentBody() {
   }
 
   useEffect(() => {
+    const requested = new URLSearchParams(window.location.search).get('status');
+    if (requested && TABS.includes(requested as (typeof TABS)[number])) {
+      setTab(requested as (typeof TABS)[number]);
+    }
+  }, []);
+
+  useEffect(() => {
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tab]);
